@@ -116,9 +116,9 @@ exports.verifyUser = async(req, res) => {
     }
     const { email, otp } = body.data;
     console.log("EMAIL & OTP=>", otp, email)
+
     try {
         const { error, user } = await validateUser(email, otp);
-
         console.log("ERROR=>", error);
         console.log("USER=>", user);
 
@@ -192,19 +192,28 @@ exports.resendVerificationOTP = async (req, res) => {
 
     try {
         const user = await User.findOne({ $or: [{ email }, { phoneNumber }] });
+        console.log("InitialUser=>", user)
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
+        if (user.otp) {
+            // Clear the already existing otp and create another one.
+            user.otp = undefined;
+            user.otpExpireIn = undefined;
+            await user.save();
+
+        }
         // Generate a new OTP
         const newOTP = generateOTP();
+        const  otp = await encrypt(newOTP);
 
         // Update user's OTP and OTP expiration
-        user.otp = newOTP;
+        user.otp = otp;
         user.otpExpireIn = new Date().getTime() + 30 * 60 * 1000;
         await user.save();
 
-        console.log("USER=>", user)
+        console.log("NEWUSER=>", user)
 
         // Send the new verification code to the user
         const data = {
