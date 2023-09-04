@@ -1,6 +1,6 @@
 const { isAuthenticated } = require("middlewares/auth");
 const {
-  verifyUser,
+  verifyUser,forgotPasswordOtp, verifyForgotPasswordOtp
  
 } = require("controllers/user");
 const express = require("express");
@@ -13,6 +13,15 @@ const router = Router();
 // access public
 router.post("/verify", verifyUser);
 
-// TODO: add rate limit
+
+// route POST api/auth/forgot-password
+// desc  generate forgot-password OTP
+// access public
+router.post("/password/forgot-password", forgotPasswordOtp);
+
+// route POST api/auth/verify
+// desc  verify otp
+// access public
+router.post("/password/verify", verifyForgotPasswordOtp);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,
+    userLogin,resendVerificationOTP,updatePassword,
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -22,6 +22,11 @@ const {
   // desc  Resend Verification OTP
   // access public
   router.post("/resend-verification-otp", resendVerificationOTP);
+
+  // route PUT api/user/password
+  // desc  update user password
+  // access private
+  router.put("/password", updatePassword);
   
   module.exports = router;
   

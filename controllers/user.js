@@ -1,4 +1,6 @@
 const User = require("models/User");
+const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
+
 const {
     UserSchema,
     VerifyUserSchema,
@@ -186,7 +188,7 @@ exports. userLogin = async(req, res) => {
     }
 };
 
-
+//Resend Verification OTP
 exports.resendVerificationOTP = async (req, res) => {
     const { email, phoneNumber } = req.body;
 
@@ -228,5 +230,115 @@ exports.resendVerificationOTP = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Server error" });
+    }
+};
+
+// Forgot password
+exports.forgotPasswordOtp = async(req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({
+            email,
+        });
+        if (!user) {
+            return res.status(404).json({
+                errors: [{
+                    error: "User not found",
+                }, ],
+            });
+        } else {
+            const otpValue = generateOTP();
+            const otp = await encrypt(otpValue);
+            user.otp = otp;
+            // To expire in 5mins.
+            user.otpExpireIn = new Date().getTime();
+            await user.save();
+              // Send the new verification code to the user
+            const data = {
+			to: email,
+			text: 'Swiftwave Forgot Password OTP',
+			subject: 'OTP To Reset Your Password',
+			html: createAccountOtp(otpValue),
+		};
+		    await sendEmail(data);
+
+            res.status(200).json({
+                msg: `otp sent to ${email}`,
+            });
+        }
+    } catch (error) {
+        console.log("RESET PASSWORD ERROR", error);
+        res.status(500).json({
+            errors: [{
+                error: "Server Error",
+            }, ],
+        });
+    }
+};
+
+// To verify the otp
+exports.verifyForgotPasswordOtp = async(req, res) => {
+    const body = VerifyPasswordOtpSchema.safeParse(req.body);
+    if (!body.success) {
+        return res.status(400).json({ errors: body.error.issues });
+    }
+    const { email, otp } = body.data;
+
+    try {
+        const user = await User.findOne({ email });
+        console.log("USER=>", user)
+
+        if (!(await compare(otp, user.otp))) {
+            return badRequest(res, "Invalid OTP");
+        }
+        if (getSecondsBetweenTime(user.otpExpireIn) > timeDifference["2m"]) {
+            return badRequest(res, "This otp has expired");
+        }
+
+        // const token = resetPasswordToken(user._id);
+
+        res.status(200).json({ message: "OTP Verified!" });
+    } catch (error) {
+        console.log("VERIFY OTP ERROR", error);
+        res.status(500).json({ errors: [{ error: "Server Error" }] });
+    }
+};
+
+exports.updatePassword = async (req, res) => {
+    const body = UpdatePasswordSchema.safeParse(req.body);
+
+    if (!body.success) {
+        return res.status(400).json({ errors: body.error.issues });
+    }
+
+    const { email, oldPassword, newPassword } = body.data;
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ email });
+        console.log("USER=>", user)
+
+        if (!user) {
+            return notFound(res, "User not found");
+        }
+
+        // Verify if the old password matches the current password
+        const isPasswordMatch = await compare(oldPassword, user.password);
+
+        if (!isPasswordMatch) {
+            return badRequest(res, "Old password doesn't match");
+        }
+
+        // Encrypt the new password
+        const newPasswordHash = await encrypt(newPassword);
+
+        // Update the user's password with the new encrypted password
+        user.password = newPasswordHash;
+        await user.save();
+
+        res.status(200).json({ message: "Password updated successfully", data: true });
+    } catch (error) {
+        console.log("UPDATE PASSWORD ERROR", error);
+        res.status(500).json({ errors: [{ error: "Server Error" }] });
     }
 };

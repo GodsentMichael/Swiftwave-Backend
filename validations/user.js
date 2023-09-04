@@ -40,6 +40,7 @@ const UpdatePasswordSchema = z
   .object({
     oldPassword: z.string().min(8, "Password is too short"),
     newPassword: z.string().min(8, "Password is too short"),
+    email: z.string().email(),
   })
   .strict()
   .refine((data) => data.newPassword !== data.oldPassword, {
