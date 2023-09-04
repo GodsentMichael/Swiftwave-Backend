@@ -115,10 +115,12 @@ exports.verifyUser = async(req, res) => {
         });
     }
     const { email, otp } = body.data;
+    console.log("EMAIL & OTP=>", otp, email)
     try {
         const { error, user } = await validateUser(email, otp);
 
         console.log("ERROR=>", error);
+        console.log("USER=>", user);
 
         if (error) {
             return badRequest(res, error);
@@ -181,5 +183,41 @@ exports. userLogin = async(req, res) => {
                 error: "Server Error",
             }, ],
         });
+    }
+};
+
+
+exports.resendVerificationOTP = async (req, res) => {
+    const { email, phoneNumber } = req.body;
+
+    try {
+        const user = await User.findOne({ $or: [{ email }, { phoneNumber }] });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Generate a new OTP
+        const newOTP = generateOTP();
+
+        // Update user's OTP and OTP expiration
+        user.otp = newOTP;
+        user.otpExpireIn = new Date().getTime() + 30 * 60 * 1000;
+        await user.save();
+
+        console.log("USER=>", user)
+
+        // Send the new verification code to the user
+        const data = {
+			to: email,
+			text: 'Swiftwave resend OTP Verification',
+			subject: 'Kindly Verify Your Account',
+			html: createAccountOtp(newOTP),
+		};
+		await sendEmail(data);
+
+        res.status(200).json({ message: "New verification code sent" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Server error" });
     }
 };

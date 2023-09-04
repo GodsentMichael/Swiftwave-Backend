@@ -1,12 +1,7 @@
 const { isAuthenticated } = require("middlewares/auth");
 const {
   verifyUser,
-  refreshToken,
-  changePassword,
-  forgotPasswordOtp,
-  verifyForgotPasswordOtp,
-  updateEmail,
-  verifyOTPAndChangeEmail,
+ 
 } = require("controllers/user");
 const express = require("express");
 const { Router } = express;

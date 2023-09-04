@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,
+    userLogin,resendVerificationOTP,
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -17,6 +17,11 @@ const {
   // desc  Login user
   // access public
   router.post("/login", userLogin);
+
+  // route POST api/user/resend-verification-otp
+  // desc  Resend Verification OTP
+  // access public
+  router.post("/resend-verification-otp", resendVerificationOTP);
   
   module.exports = router;
   
