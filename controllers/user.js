@@ -7,8 +7,6 @@ const {
     LoginUserSchema,
     VerifyPasswordOtpSchema,
     UpdatePasswordSchema,
-    UpdateEmail,
-    ResetPasswordSchema,
 } = require("validations/user");
 
 const { encrypt } = require("helpers/auth");
@@ -16,12 +14,11 @@ const { compare } = require("helpers/auth");
 const {
     generateToken,
     generateRefreshToken,
-    decodeToken,
-    resetPasswordToken,
 } = require("helpers/token");
 
 const { validateUser } = require("services/auth");
 const { generateOTP } = require("helpers/token");
+
 
 const {
     badRequest,
@@ -342,3 +339,5 @@ exports.updatePassword = async (req, res) => {
         res.status(500).json({ errors: [{ error: "Server Error" }] });
     }
 };
+
+
