@@ -1,6 +1,5 @@
 const User = require("models/User");
 const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
-
 const {
     UserSchema,
     VerifyUserSchema,
@@ -8,30 +7,23 @@ const {
     VerifyPasswordOtpSchema,
     UpdatePasswordSchema,
 } = require("validations/user");
-
 const { encrypt } = require("helpers/auth");
 const { compare } = require("helpers/auth");
 const {
     generateToken,
     generateRefreshToken,
 } = require("helpers/token");
-
 const { validateUser } = require("services/auth");
 const { generateOTP } = require("helpers/token");
-
-
 const {
     badRequest,
     notFound,
-    unAuthorized,
-    unAuthenticated,
-    formatServerError,
 } = require("helpers/error");
-
 const verifyOTP = require("helpers/verifyOtp");
-// const { sendMail } = require("services/mail");
 const sendEmail = require("services/email");
 const { createAccountOtp } = require("helpers/mails/otp");
+
+
 
 exports.createUser = async(req, res) => {
     const body = UserSchema.safeParse(req.body);
@@ -44,7 +36,6 @@ exports.createUser = async(req, res) => {
 
     const { email, phoneNumber, password, howDidYouHear } = body.data;
     try {
-        // check user
         const checkPhone = await User.findOne({ phoneNumber })
         if (checkPhone) {
             return badRequest(res, "Phone Number already taken")
@@ -54,9 +45,6 @@ exports.createUser = async(req, res) => {
         if (checkEmail) {
             return badRequest(res, "Email is already taken")
         }
-
-
-        // hash password & otp
 
         body.data.password = await encrypt(password);
 
@@ -339,5 +327,19 @@ exports.updatePassword = async (req, res) => {
         res.status(500).json({ errors: [{ error: "Server Error" }] });
     }
 };
-
-
+//igieboelvis@gmail.com
+exports.getAllUsers = async(req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json({
+            users,
+        });
+    } catch (error) {
+        console.log("GET ALL USERS ERROR", error);
+        res.status(500).json({
+            errors: [{
+                error: "Server Error",
+            }, ],
+        });
+    }
+}

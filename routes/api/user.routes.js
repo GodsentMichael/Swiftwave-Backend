@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,updatePassword,
+    userLogin,resendVerificationOTP,updatePassword,getAllUsers
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -27,6 +27,10 @@ const {
   // desc  update user password
   // access private
   router.put("/password", updatePassword);
+  // route GET api/user/get-users
+  // desc  all users password
+  // access private
+  router.get("/get-users",isAuthenticated, getAllUsers);
   
   module.exports = router;
   
