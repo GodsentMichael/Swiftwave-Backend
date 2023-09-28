@@ -349,7 +349,6 @@ exports.getAllUsers = async (req, res) => {
 };
 
 exports.deleteUser = async (req, res) => {
-//   const { id } = req.params;
   const {id} = req.user
   try {
     const findUser = await User.findById(id)

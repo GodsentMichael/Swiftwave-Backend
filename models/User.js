@@ -20,7 +20,7 @@ const UserSchema = new Schema(
     },
     howDidYouHear: {
       type: String,
-      enum: ["Online Ads", "Word of Mouth", "Social Media", "Other"],  // Add more options as needed
+      enum: ["Television", "Twitter", "Instagram", "Youtube", "LinkedIn",  "Friends"],  
     },
     otp: {
       type: String,
