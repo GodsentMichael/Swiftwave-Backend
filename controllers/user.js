@@ -329,7 +329,7 @@ exports.updatePassword = async (req, res) => {
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };
-//igieboelvis@gmail.com
+
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -348,13 +348,44 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+// exports.deleteUser = async (req, res) => {
+//   const {id} = req.user
+//   try {
+//     const findUser = await User.findById(id)
+//     const user = await User.findByIdAndDelete(id);
+//     console.log("USER=>", user)
+//     if(!user){
+//       return res.status(404).json({
+//         errors: [
+//           {
+//             error: "User not found",
+//           },
+//         ],
+//       });
+//     }
+//     res.status(200).json({
+//       msg: "User Deleted",
+//     });
+//   } catch (error) {
+//     console.log("DELETE USER ERROR", error);
+//     res.status(500).json({
+//       errors: [
+//         {
+//           error: "Server Error",
+//         },
+//       ],
+//     });
+//   }
+// };
+
 exports.deleteUser = async (req, res) => {
-  const {id} = req.user
+  const { email } = req.body; 
+
   try {
-    const findUser = await User.findById(id)
-    const user = await User.findByIdAndDelete(id);
-    console.log("USER=>", user)
-    if(!user){
+    const user = await User.findOneAndDelete({email});
+    console.log("USER=>", user);
+
+    if (!user) {
       return res.status(404).json({
         errors: [
           {
@@ -362,7 +393,8 @@ exports.deleteUser = async (req, res) => {
           },
         ],
       });
-    }
+    }   
+
     res.status(200).json({
       msg: "User Deleted",
     });

@@ -34,7 +34,7 @@ const {
   //route DELETE api/user/delete-user/:id
   //desc delete user
   //access private
-  router.delete("/delete-user/",isAuthenticated, deleteUser);
+  router.delete("/delete-user/", deleteUser);
 
   module.exports = router;
   
