@@ -18,7 +18,7 @@ const VerifyUserSchema = z
 const LoginUserSchema = z
   .object({
     email: z.string().email("Invalid email"),
-    password: z.string().min(6).max(30),
+    password: z.string().min(4).max(30),
   })
   .strict();
 
@@ -31,15 +31,16 @@ const VerifyPasswordOtpSchema = z
 
 const ResetPasswordSchema = z
   .object({
-    password: z.string().min(8, "Password is too short"),
-    token: z.string().min(5),
+    repeatPassword: z.string().min(4, "Password is too short"),
+    newPassword: z.string().min(4, "Password is too short"),
+    email: z.string().email(),
   })
   .strict();
 
 const UpdatePasswordSchema = z
   .object({
-    oldPassword: z.string().min(8, "Password is too short"),
-    newPassword: z.string().min(8, "Password is too short"),
+    oldPassword: z.string().min(4, "Password is too short"),
+    newPassword: z.string().min(4, "Password is too short"),
     email: z.string().email(),
   })
   .strict()

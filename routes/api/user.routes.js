@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,updatePassword,getAllUsers, deleteUser
+    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, deleteUser
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -22,6 +22,11 @@ const {
   // desc  Resend Verification OTP
   // access public
   router.post("/resend-verification-otp", resendVerificationOTP);
+
+  //route POST api/user/resend-password-otp
+  // desc  Resend Password OTP
+  // access public
+  router.post("/resend-password-otp", resendPasswordOTP); 
 
   // route PUT api/user/password
   // desc  update user password

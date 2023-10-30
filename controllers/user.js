@@ -6,6 +6,7 @@ const {
   LoginUserSchema,
   VerifyPasswordOtpSchema,
   UpdatePasswordSchema,
+  ResetPasswordSchema,
 } = require("validations/user");
 const { encrypt } = require("helpers/auth");
 const { compare } = require("helpers/auth");
@@ -15,8 +16,9 @@ const { generateOTP } = require("helpers/token");
 const { badRequest, notFound } = require("helpers/error");
 const verifyOTP = require("helpers/verifyOtp");
 const sendEmail = require("services/email");
-const { createAccountOtp } = require("helpers/mails/otp");
+const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
 
+// CREATE/REGISTER  USER
 exports.createUser = async (req, res) => {
   const body = UserSchema.safeParse(req.body);
 
@@ -86,6 +88,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
+// VERIFY NEWLY CREATED USER
 exports.verifyUser = async (req, res) => {
   const body = VerifyUserSchema.safeParse(req.body);
 
@@ -122,7 +125,7 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
-// User Login
+// USER LOGIN
 exports.userLogin = async (req, res) => {
   const body = LoginUserSchema.safeParse(req.body);
   if (!body.success) {
@@ -170,13 +173,13 @@ exports.userLogin = async (req, res) => {
   }
 };
 
-//Resend Verification OTP
+
+// RESEND VERIFIICATION OTP
 exports.resendVerificationOTP = async (req, res) => {
   const { email, phoneNumber } = req.body;
 
   try {
     const user = await User.findOne({ $or: [{ email }, { phoneNumber }] });
-    console.log("InitialUser=>", user);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -196,8 +199,6 @@ exports.resendVerificationOTP = async (req, res) => {
     user.otpExpireIn = new Date().getTime() + 30 * 60 * 1000;
     await user.save();
 
-    console.log("NEWUSER=>", user);
-
     // Send the new verification code to the user
     const data = {
       to: email,
@@ -214,12 +215,12 @@ exports.resendVerificationOTP = async (req, res) => {
   }
 };
 
-// Forgot password
+// FORGOT PASSWORD
 exports.forgotPasswordOtp = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({
-      email,
+      email
     });
     if (!user) {
       return res.status(404).json({
@@ -261,7 +262,7 @@ exports.forgotPasswordOtp = async (req, res) => {
   }
 };
 
-// To verify the otp
+// TO VERIFY OTP FOR FORGOT PASSWORD
 exports.verifyForgotPasswordOtp = async (req, res) => {
   const body = VerifyPasswordOtpSchema.safeParse(req.body);
   if (!body.success) {
@@ -271,7 +272,7 @@ exports.verifyForgotPasswordOtp = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    console.log("USER=>", user);
+    // console.log("USER=>", user);
 
     if (!(await compare(otp, user.otp))) {
       return badRequest(res, "Invalid OTP");
@@ -280,8 +281,6 @@ exports.verifyForgotPasswordOtp = async (req, res) => {
       return badRequest(res, "This otp has expired");
     }
 
-    // const token = resetPasswordToken(user._id);
-
     res.status(200).json({ message: "OTP Verified!" });
   } catch (error) {
     console.log("VERIFY OTP ERROR", error);
@@ -289,6 +288,76 @@ exports.verifyForgotPasswordOtp = async (req, res) => {
   }
 };
 
+// TO RESET PASSWORD
+exports.resetPassword = async (req, res) => {
+  const body = ResetPasswordSchema.safeParse(req.body);
+  if (!body.success) {
+    return res.status(400).json({ errors: body.error.issues });
+  }
+  const { email, newPassword, repeatPassword } = body.data;
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+    console.log("USER=>", user);
+    if (!user) {
+      return notFound(res, "User not found");
+    }
+    // Encrypt the new password
+    const newPasswordHash = await encrypt(newPassword);
+    // Update the user's password with the new encrypted password
+    user.password = newPasswordHash;
+    await user.save();
+    res.status(200).json({ message: "Password resetted successfully" });
+    
+  } catch (error) { 
+    console.log("RESET PASSWORD ERROR", error);
+    res.status(500).json({ errors: [{ error: "Server Error" }] });
+  }
+};
+
+// RESEND PASSWORD OTP
+exports.resendPasswordOTP = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({email});
+   
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.otp) {
+      // Clear the already existing otp and create another one.
+      user.otp = undefined;
+      user.otpExpireIn = undefined;
+      await user.save();
+    }
+    // Generate a new OTP
+    const newOTP = generateOTP();
+    const otp = await encrypt(newOTP);
+
+    // Update user's OTP and OTP expiration
+    user.otp = otp;
+    user.otpExpireIn = new Date().getTime() + 30 * 60 * 1000;
+    await user.save();
+
+    // Send the new verification code to the user
+    const data = {
+      to: email,
+      text: "Swiftwave resend Password OTP",
+      subject: "Kindly Verify Your Password OTP",
+      html: resetPasswordOtp(newOTP),
+    };
+    await sendEmail(data);
+
+    res.status(200).json({ message: "New verification code sent" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// UPDATE PASSWORD
 exports.updatePassword = async (req, res) => {
   const body = UpdatePasswordSchema.safeParse(req.body);
 
@@ -330,6 +399,7 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
+// TO GET ALL USERS
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -348,6 +418,8 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+
+// DELETE USER this is for testing purposes.
 // exports.deleteUser = async (req, res) => {
 //   const {id} = req.user
 //   try {
