@@ -32,10 +32,12 @@ const {
   // desc  update user password
   // access public
   router.put("/password", updatePassword);
+
   // route GET api/user/get-users
   // desc  all users password
   // access private
   router.get("/get-users",isAuthenticated, getAllUsers);
+  
   //route DELETE api/user/delete-user/:id
   //desc delete user
   //access private

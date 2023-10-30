@@ -28,7 +28,7 @@ exports.createUser = async (req, res) => {
     });
   }
 
-  const { email, phoneNumber, password, howDidYouHear } = body.data;
+  const { userName, email, phoneNumber, password, howDidYouHear } = body.data;
   try {
     const checkPhone = await User.findOne({ phoneNumber });
     if (checkPhone) {
@@ -73,7 +73,6 @@ exports.createUser = async (req, res) => {
 
     res.status(201).json({
       msg: "account created",
-      // token,
       refreshToken,
     });
   } catch (error) {

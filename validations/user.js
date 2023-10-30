@@ -1,6 +1,7 @@
 const z = require("zod");
 
 const UserSchema = z.object({
+  userName: z.string().min(2, "username is too short"),
   howDidYouHear: z.enum(["Television", "Twitter", "Instagram", "Youtube", "LinkedIn",  "Friends"],  ).optional(),
   email: z.string().email("Invalid email"),
   phoneNumber: z.string().min(10),
