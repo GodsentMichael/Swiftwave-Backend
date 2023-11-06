@@ -10,7 +10,7 @@ exports.createWallet = async (req, res) => {
     const { id } = req.user;
     const user = await User.findById(id);
     console.log("USER=>", user);
-    const wallet = await Wallet.findOne({ user: user.id });
+    const wallet = await Wallet.findOne({ user:id });
 
     if (!user) return res.status(400).json({ error: "User not found" });
     if (wallet) return res.status(400).json({ error: "Wallet already exists" });

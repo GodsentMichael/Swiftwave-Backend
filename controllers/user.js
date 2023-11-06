@@ -304,6 +304,14 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       return notFound(res, "User not found");
     }
+
+      // Check if the new password is the same as the previous password
+      const isSamePassword = await compare(newPassword, user.password);
+
+      if (isSamePassword) {
+        return res.status(400).json({ errors: [{ error: "New Password cannot be the same as the previous one." }] });
+      }
+
     // Encrypt the new password
     const newPasswordHash = await encrypt(newPassword);
     // Update the user's password with the new encrypted password
