@@ -1,6 +1,6 @@
 const Wallet = require("models/Wallet");
 const User = require("models/User");
-const { WalletSchema } = require("validations/wallet");
+const { WalletSchema, FundWalletSchema } = require("validations/wallet");
 const { encrypt } = require("helpers/auth");
 // const WalletTransaction = require("models/WalletTransactionSchema")
 
@@ -25,6 +25,7 @@ exports.createWallet = async (req, res) => {
   }
 };
 
+//TO CREATE PIN FOR THE WALLET
 exports.createPin = async (req, res) => {
   const { id } = req.user;
   const body = WalletSchema.safeParse(req.body);
@@ -53,3 +54,24 @@ exports.createPin = async (req, res) => {
     res.status(500).json(error);
   }
 };
+
+// TO FUND THE WALLET
+exports.fundWallet = async (req, res) => {
+    const { id } = req.user;
+    const body = FundWalletSchema.safeParse(req.body);
+    if (!body.success) return res.status(400).json({ errors: body.error.issues });
+
+    try {
+        const wallet = await Wallet.findOne({ user: id });
+        if (!wallet) return res.status(400).json({ error: "Wallet not found" });
+        const { amount } = body.data;
+        wallet.mainBalance = wallet.mainBalance + amount;
+        await wallet.save();
+        return res.status(200).json({ message: "Wallet Funded Succesfully", wallet });
+    }
+    catch (error) {
+        console.log("ERROR=>", error);
+        res.status(500).json(error);
+    }
+}
+

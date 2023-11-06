@@ -73,7 +73,7 @@ exports.createUser = async (req, res) => {
 
     res.status(201).json({
       msg: "account created",
-      refreshToken,
+      user
     });
   } catch (error) {
     console.log("CREATE USER ERROR", error);
@@ -97,12 +97,11 @@ exports.verifyUser = async (req, res) => {
     });
   }
   const { email, otp } = body.data;
-  console.log("EMAIL & OTP=>", otp, email);
+  // console.log("EMAIL & OTP=>", otp, email);
 
   try {
     const { error, user } = await validateUser(email, otp);
-    console.log("ERROR=>", error);
-    console.log("USER=>", user);
+    console.log("VERIFIED USER=>", user);
 
     if (error) {
       return badRequest(res, error);
@@ -294,10 +293,14 @@ exports.resetPassword = async (req, res) => {
     return res.status(400).json({ errors: body.error.issues });
   }
   const { email, newPassword, repeatPassword } = body.data;
+
+  if (newPassword !== repeatPassword) {
+    return res.status(400).json({ errors: [{ error: "Passwords do not match" }] });
+  }
   try {
     // Find the user by email
     const user = await User.findOne({ email });
-    console.log("USER=>", user);
+    console.log("USER ASKING TO RESET PASSSWORD=>", user);
     if (!user) {
       return notFound(res, "User not found");
     }
@@ -306,10 +309,10 @@ exports.resetPassword = async (req, res) => {
     // Update the user's password with the new encrypted password
     user.password = newPasswordHash;
     await user.save();
-    res.status(200).json({ message: "Password resetted successfully" });
+    res.status(200).json({ message: "Password has been successfully reset" });
     
   } catch (error) { 
-    console.log("RESET PASSWORD ERROR", error);
+    console.log("RESET PASSWORD ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };
