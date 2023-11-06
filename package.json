@@ -4,7 +4,7 @@
   "description": "Swiftwave backend APIs",
   "main": "app.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node ./public/server.js",
     "dev": "nodemon ./public/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
