@@ -65,6 +65,13 @@ const UpdateEmail = z
     newMail: z.string().email()
   }).strict()
 
+  const UpdateUserProfile = z.object({
+    userName: z.string().min(2, "username is too short"),
+    fullName: z.string().min(2, "fullname is too short"),
+    email: z.string().email("Invalid email"),
+    phoneNumber: z.string().min(10),
+  })
+
 module.exports = {
   UserSchema,
   VerifyUserSchema,
@@ -73,5 +80,6 @@ module.exports = {
   UpdatePasswordSchema,
   UpdateEmail,
   ResetPasswordSchema,
-  UpdateEmailUpdated
+  UpdateEmailUpdated,
+  UpdateUserProfile
 };

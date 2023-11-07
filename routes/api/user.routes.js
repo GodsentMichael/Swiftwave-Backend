@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, deleteUser
+    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, getUserDetail,deleteUser
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -37,6 +37,11 @@ const {
   // desc  all users password
   // access private
   router.get("/get-users",isAuthenticated, getAllUsers);
+
+  // route GET api/user/get-user
+  // desc get a user's details
+  // access private
+  router.get("/get-user", isAuthenticated, getUserDetail)
   
   //route DELETE api/user/delete-user/:id
   //desc delete user

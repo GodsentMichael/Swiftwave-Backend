@@ -6,7 +6,7 @@ const {
   LoginUserSchema,
   VerifyPasswordOtpSchema,
   UpdatePasswordSchema,
-  ResetPasswordSchema,
+  ResetPasswordSchema,UpdateUserProfile
 } = require("validations/user");
 const { encrypt } = require("helpers/auth");
 const { compare } = require("helpers/auth");
@@ -459,6 +459,82 @@ exports.getAllUsers = async (req, res) => {
 //     });
 //   }
 // };
+
+
+//UPDATE USER PERSONAL INFO.
+
+//TODO
+exports.updateUserInfo = async (req, res) => {
+  const { id } = req.user;
+  const body = UpdateUserProfile.safeParse(req.body);
+
+  if (!body.success) {
+    return res.status(400).json({
+      errors: body.error.issues,
+    });
+  }
+  const { userName, email, phoneNumber, fullName } = body.data;
+  try {
+    const user = await User.findById(id);
+    console.log("USER INFO TO BE UPDATED=>", user);
+    if (!user) {
+      return res.status(404).json({
+        errors: [
+          {
+            error: "User not found",
+          },
+        ],
+      });
+    }
+    user.userName = userName;
+    user.email = email;
+    user.phoneNumber = phoneNumber;
+    user.howDidYouHear = howDidYouHear;
+    await user.save();
+    res.status(200).json({
+      msg: "User Updated",
+      user,
+    });
+  } catch (error) {
+    console.log("UPDATE USER ERROR", error);
+    res.status(500).json({
+      errors: [
+        {
+          error: "Server Error",
+        },
+      ],
+    });
+  }
+}
+
+//GET A USER'S DETAILS
+exports.getUserDetail = async(req, res) => {
+  try {
+    const {id} = req.user
+
+    const userDetails = await User.find({_id:id})
+    if (!userDetails) {
+      return res.status(404).json({
+        errors: [
+          {
+            error: "User's details not found",
+          },
+        ],
+      });
+    }
+    return res.status(200).json({msg:"User successfully fetched", userDetails})
+
+  } catch (error) {
+    console.log("ERROR GETING USER DETAILS=>",error )
+    res.status(500).json({
+      errors: [
+        {
+          error: "Server Error",
+        },
+      ],
+    });
+  }
+}
 
 exports.deleteUser = async (req, res) => {
   const { email } = req.body; 
