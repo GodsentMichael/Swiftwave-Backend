@@ -13,6 +13,9 @@ const UserSchema = new Schema(
       required: true,
       unique: true
     },
+    fullName: {
+      type: String,
+    },
     phoneNumber: {
       type: String,
       required: true,
@@ -26,6 +29,15 @@ const UserSchema = new Schema(
     howDidYouHear: {
       type: String,
       enum: ["Television", "Twitter", "Instagram", "Youtube", "LinkedIn",  "Friends"],  
+    },
+    avatar: {
+      public_id: {
+        type: String,
+      },
+      url: {
+        type: String,
+        required: true
+      }
     },
     otp: {
       type: String,

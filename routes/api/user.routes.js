@@ -1,9 +1,11 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, getUserDetail,deleteUser
+    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, getUserDetail,updateUserInfo,deleteUser
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
+  const {cloudinaryConfig} = require("../../services/cloudinaryConfig")
+  const {upload} = require("../../middlewares/upload")
   const { Router } = express;
   
   const router = Router();
@@ -43,6 +45,10 @@ const {
   // access private
   router.get("/get-user", isAuthenticated, getUserDetail)
   
+  //route POST api/user/update-profile
+  // desc update  user's proile info
+  // access private
+  router.post("/update-profile",isAuthenticated,upload.single("image"), cloudinaryConfig, updateUserInfo)
   //route DELETE api/user/delete-user/:id
   //desc delete user
   //access private

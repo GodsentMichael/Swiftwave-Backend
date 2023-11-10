@@ -1,4 +1,6 @@
 const User = require("models/User");
+// const { uploader } = require("cloudinary");
+const fs = require("fs");
 const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 const {
   UserSchema,
@@ -17,6 +19,7 @@ const { badRequest, notFound } = require("helpers/error");
 const verifyOTP = require("helpers/verifyOtp");
 const sendEmail = require("services/email");
 const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
+const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig")
 
 // CREATE/REGISTER  USER
 exports.createUser = async (req, res) => {
@@ -464,9 +467,65 @@ exports.getAllUsers = async (req, res) => {
 //UPDATE USER PERSONAL INFO.
 
 //TODO
+// exports.updateUserInfo = async (req, res) => {
+//   const { id } = req.user;
+//   const body = UpdateUserProfile.safeParse(req.body);
+
+//   if (!body.success) {
+//     return res.status(400).json({
+//       errors: body.error.issues,
+//     });
+//   }
+//   const { userName, email, phoneNumber, fullName } = body.data;
+//   try {
+//     const user = await User.findById(id);
+//     console.log("USER INFO TO BE UPDATED=>", user);
+//     if (!user) {
+//       return res.status(404).json({
+//         errors: [
+//           {
+//             error: "User not found",
+//           },
+//         ],
+//       });
+//     }
+//     user.userName = userName;
+//     user.email = email;
+//     user.phoneNumber = phoneNumber;
+//     user.howDidYouHear = howDidYouHear;
+//     await user.save();
+//     res.status(200).json({
+//       msg: "User Updated",
+//       user,
+//     });
+//   } catch (error) {
+//     console.log("UPDATE USER ERROR", error);
+//     res.status(500).json({
+//       errors: [
+//         {
+//           error: "Server Error",
+//         },
+//       ],
+//     });
+//   }
+// }
+
+
 exports.updateUserInfo = async (req, res) => {
-  const { id } = req.user;
-  const body = UpdateUserProfile.safeParse(req.body);
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No file uploaded",
+      });
+    }
+
+    // UPLOAD TO CLOUDINARY AND RETURN THE RESULT
+    const result = await uploader.upload(req.file.path, {
+      folder: "avatars",
+    });
+
+    const body = UpdateUserProfile.safeParse(req.body);
 
   if (!body.success) {
     return res.status(400).json({
@@ -474,25 +533,25 @@ exports.updateUserInfo = async (req, res) => {
     });
   }
   const { userName, email, phoneNumber, fullName } = body.data;
-  try {
-    const user = await User.findById(id);
-    console.log("USER INFO TO BE UPDATED=>", user);
-    if (!user) {
-      return res.status(404).json({
-        errors: [
-          {
-            error: "User not found",
-          },
-        ],
-      });
-    }
-    user.userName = userName;
-    user.email = email;
-    user.phoneNumber = phoneNumber;
-    user.howDidYouHear = howDidYouHear;
-    await user.save();
+
+    // Remove the file from the local directory
+    fs.unlinkSync(req.file.path);
+
+    const user = {
+      userName: userName,
+      email: email,
+      phoneNumber: phoneNumber,
+      fullName: fullName,
+      avatar: {
+        public_id: result.public_id,
+        url: result.secure_url,
+      },
+    };
+
+    await user.save;
+
     res.status(200).json({
-      msg: "User Updated",
+      msg: "User Profile Updated Successfully",
       user,
     });
   } catch (error) {
@@ -505,7 +564,8 @@ exports.updateUserInfo = async (req, res) => {
       ],
     });
   }
-}
+};
+
 
 //GET A USER'S DETAILS
 exports.getUserDetail = async(req, res) => {
