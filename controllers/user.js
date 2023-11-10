@@ -431,69 +431,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-//UPDATE USER PERSONAL INFO
-// exports.updateUserInfo = async (req, res) => {
-//   try {
-
-//     if (!req.file) {
-//       return res.status(400).json({
-//         error: "No profile image uploaded",
-//       });
-//     }
-
-//     // UPLOAD TO CLOUDINARY AND RETURN THE RESULT
-//     const result = await uploader.upload(req.file.path, {
-//       folder: "avatars",
-//     });
-
-//       // THE IDEA IS TO DELETE FILE FROM SERVER FOLDER AFTER SUCCESSFUL UPLOAD TO CLOUDINARY.
-//       console.log("REQ.FILE=>", req.file)
-//       if(req.file){
-//         fs.unlinkSync(req.file.path);
-//       }
-
-//     const body = UpdateUserProfile.safeParse(req.body);
-
-//   if (!body.success) {
-//     return res.status(400).json({
-//       errors: body.error.issues,
-//     });
-//   }
-//   const { userName, email, phoneNumber, fullName } = body.data;
-
-//     // fs.unlinkSync(req.file.path);
-
-//     const user = new User ({
-//       userName: userName,
-//       email: email,
-//       phoneNumber: phoneNumber,
-//       fullName: fullName,
-//       avatar: {
-//         public_id: result.public_id,
-//         url: result.secure_url,
-//       },
-//     });
-
-//     await user.save();
-
-//     res.status(200).json({
-//       msg: "User Profile Updated Successfully",
-//       user,
-//     });
-//   } catch (error) {
-//     console.log("UPDATE USER ERROR", error);
-//     res.status(500).json({
-//       errors: [
-//         {
-//           error: "Server Error",
-//         },
-//       ],
-//     });
-//   }
-// };
-
-
-
+// UPDATE USER PROFILE
 exports.updateUserInfo = async (req, res) => {
   const MAX_RETRY_ATTEMPTS = 3;
   const { id } = req.user;
@@ -575,7 +513,7 @@ exports.updateUserInfo = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log('UPDATE USER ERROR', error);
+    console.log('UPDATE USER ERROR=>', error);
     res.status(500).json({
       errors: [
         {
@@ -585,7 +523,6 @@ exports.updateUserInfo = async (req, res) => {
     });
   }
 };
-
 
 //GET A USER'S DETAILS
 exports.getUserDetail = async(req, res) => {
@@ -616,8 +553,8 @@ exports.getUserDetail = async(req, res) => {
   }
 }
 
-//DELETE USER FOR TESTING (by email)
-exports.deleteUser = async (req, res) => {
+// DELETE USER FOR TESTING (by email)
+exports.deleteUserByEmail = async (req, res) => {
   const { email } = req.body; 
 
   try {
@@ -648,14 +585,47 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
+
 // DELETE USER (where a user can delete their account by id)
+// exports.deleteUser = async (req, res) => {
+ 
+//   try {
+//     const {id} = req.user
+
+//     const findUser = await User.findById(id)
+//     const user = await User.findByIdAndDelete(findUser.id);
+//     console.log("USER=>", user)
+//     if(!user){
+//       return res.status(404).json({
+//         errors: [
+//           {
+//             error: "User not found",
+//           },
+//         ],
+//       });
+//     }
+//     res.status(200).json({
+//       msg: "User Deleted",
+//     });
+//   } catch (error) {
+//     console.log("DELETE USER ERROR=>", error);
+//     res.status(500).json({
+//       errors: [
+//         {
+//           error: "Server Error",
+//         },
+//       ],
+//     });
+//   }
+// };
+
 exports.deleteUser = async (req, res) => {
-  const {id} = req.user
   try {
-    const findUser = await User.findById(id)
+    const { id } = req.user;
+
     const user = await User.findByIdAndDelete(id);
-    console.log("USER=>", user)
-    if(!user){
+
+    if (!user) {
       return res.status(404).json({
         errors: [
           {
@@ -664,11 +634,12 @@ exports.deleteUser = async (req, res) => {
         ],
       });
     }
+
     res.status(200).json({
       msg: "User Deleted",
     });
   } catch (error) {
-    console.log("DELETE USER ERROR", error);
+    console.error("DELETE USER ERROR=>", error);
     res.status(500).json({
       errors: [
         {

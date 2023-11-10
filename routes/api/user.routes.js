@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, getUserDetail,updateUserInfo,deleteUser
+    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, getUserDetail,updateUserInfo,deleteUserByEmail,deleteUser
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -45,14 +45,20 @@ const {
   // access private
   router.get("/get-user", isAuthenticated, getUserDetail)
   
-  //route POST api/user/update-profile
+  // route POST api/user/update-profile
   // desc update  user's proile info
   // access private
   router.post("/update-profile",isAuthenticated,upload.single("image"), cloudinaryConfig, updateUserInfo)
-  //route DELETE api/user/delete-user/:id
-  //desc delete user
-  //access private
-  router.delete("/delete-user/", deleteUser);
+
+  // route DELETE api/user/delete-user/:id
+  // desc delete user by email; for testing
+  // access private
+  router.delete("/delete-user-by-email/", deleteUserByEmail);
+
+  // route DELETE api/user/delete-user/:id
+  // desc delete user
+  // access private
+  router.delete("/delete-user/", isAuthenticated, deleteUser);
 
   module.exports = router;
   
