@@ -55,6 +55,30 @@ exports.createPin = async (req, res) => {
   }
 };
 
+//CHANGE PIN
+exports.changePin = async(req, res) => {
+
+    const { id } = req.user;
+    const body = WalletSchema.safeParse(req.body);
+    if (!body.success) return res.status(400).json({ errors: body.error.issues });
+
+    try {
+
+        const wallet = await Wallet.findOne({ user: id });
+        if (!wallet) return res.status(400).json({ error: "Wallet not found" });
+
+        const { pin } = body.data;
+        const hashedPin = await encrypt(pin);
+        wallet.pin = hashedPin;
+        await wallet.save();
+        return res.status(200).json({ message: "Pin Changed Succesfully", wallet });
+
+    } catch (error) {
+        console.log("CHANGE WALLET PIN ERROR=>", error);
+        res.status(500).json(error);
+    }
+}
+
 // TO FUND THE WALLET
 exports.fundWallet = async (req, res) => {
     const { id } = req.user;
