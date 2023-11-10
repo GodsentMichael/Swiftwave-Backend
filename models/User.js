@@ -36,7 +36,6 @@ const UserSchema = new Schema(
       },
       url: {
         type: String,
-        required: true
       }
     },
     otp: {

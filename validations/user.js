@@ -67,8 +67,8 @@ const UpdateEmail = z
 
   const UpdateUserProfile = z.object({
     userName: z.string().min(2, "username is too short"),
-    fullName: z.string().min(2, "fullname is too short"),
-    email: z.string().email("Invalid email"),
+    // fullName: z.string().min(2, "fullname is too short"),
+    // email: z.string().email("Invalid email"),
     phoneNumber: z.string().min(10),
   })
 

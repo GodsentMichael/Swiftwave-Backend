@@ -431,45 +431,28 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-
-// DELETE USER this is for testing purposes.
-// exports.deleteUser = async (req, res) => {
-//   const {id} = req.user
+//UPDATE USER PERSONAL INFO
+// exports.updateUserInfo = async (req, res) => {
 //   try {
-//     const findUser = await User.findById(id)
-//     const user = await User.findByIdAndDelete(id);
-//     console.log("USER=>", user)
-//     if(!user){
-//       return res.status(404).json({
-//         errors: [
-//           {
-//             error: "User not found",
-//           },
-//         ],
+
+//     if (!req.file) {
+//       return res.status(400).json({
+//         error: "No profile image uploaded",
 //       });
 //     }
-//     res.status(200).json({
-//       msg: "User Deleted",
+
+//     // UPLOAD TO CLOUDINARY AND RETURN THE RESULT
+//     const result = await uploader.upload(req.file.path, {
+//       folder: "avatars",
 //     });
-//   } catch (error) {
-//     console.log("DELETE USER ERROR", error);
-//     res.status(500).json({
-//       errors: [
-//         {
-//           error: "Server Error",
-//         },
-//       ],
-//     });
-//   }
-// };
 
+//       // THE IDEA IS TO DELETE FILE FROM SERVER FOLDER AFTER SUCCESSFUL UPLOAD TO CLOUDINARY.
+//       console.log("REQ.FILE=>", req.file)
+//       if(req.file){
+//         fs.unlinkSync(req.file.path);
+//       }
 
-//UPDATE USER PERSONAL INFO.
-
-//TODO
-// exports.updateUserInfo = async (req, res) => {
-//   const { id } = req.user;
-//   const body = UpdateUserProfile.safeParse(req.body);
+//     const body = UpdateUserProfile.safeParse(req.body);
 
 //   if (!body.success) {
 //     return res.status(400).json({
@@ -477,25 +460,24 @@ exports.getAllUsers = async (req, res) => {
 //     });
 //   }
 //   const { userName, email, phoneNumber, fullName } = body.data;
-//   try {
-//     const user = await User.findById(id);
-//     console.log("USER INFO TO BE UPDATED=>", user);
-//     if (!user) {
-//       return res.status(404).json({
-//         errors: [
-//           {
-//             error: "User not found",
-//           },
-//         ],
-//       });
-//     }
-//     user.userName = userName;
-//     user.email = email;
-//     user.phoneNumber = phoneNumber;
-//     user.howDidYouHear = howDidYouHear;
+
+//     // fs.unlinkSync(req.file.path);
+
+//     const user = new User ({
+//       userName: userName,
+//       email: email,
+//       phoneNumber: phoneNumber,
+//       fullName: fullName,
+//       avatar: {
+//         public_id: result.public_id,
+//         url: result.secure_url,
+//       },
+//     });
+
 //     await user.save();
+
 //     res.status(200).json({
-//       msg: "User Updated",
+//       msg: "User Profile Updated Successfully",
 //       user,
 //     });
 //   } catch (error) {
@@ -508,58 +490,96 @@ exports.getAllUsers = async (req, res) => {
 //       ],
 //     });
 //   }
-// }
+// };
+
 
 
 exports.updateUserInfo = async (req, res) => {
+  const MAX_RETRY_ATTEMPTS = 3;
+  const { id } = req.user;
   try {
+    let user = await User.findById(id);
 
+    if (!user) {
+        return notFound(res, "User");
+    }
     if (!req.file) {
       return res.status(400).json({
-        error: "No file uploaded",
+        error: 'No profile image uploaded',
       });
     }
 
-    // UPLOAD TO CLOUDINARY AND RETURN THE RESULT
-    const result = await uploader.upload(req.file.path, {
-      folder: "avatars",
-    });
+    let result;
+    let retryAttempts = 0;
+
+    // THIS IS TO RETRY THE CLOUDINARY UPLOAD IN CASE OF NETWORK UPLOAD
+    while (retryAttempts < MAX_RETRY_ATTEMPTS) {
+      try {
+        result = await uploader.upload(req.file.path, {
+          folder: 'avatars',
+        });
+
+        // IF THE UPLOAD IS SUCCESSFUL, BREAK OUT OF THE RETRY LOOP
+        break;
+      } catch (uploadError) {
+        console.error('Error uploading to Cloudinary=>', uploadError);
+
+        retryAttempts++;
+
+        if (retryAttempts < MAX_RETRY_ATTEMPTS) {
+          console.log(`Retrying upload (attempt ${retryAttempts})...`);
+        } else {
+          
+         // ONCE THE MAX ATTEMPT IS REACHED, THROW THE UPLOAD ERROR
+          throw uploadError;
+        }
+      }
+    }
+
+    // DELETE FILE FRO, THE SERVER FOLDER AFTER THE SUCCESSUL UPLOAD TO CLOUDINARY
+    fs.unlinkSync(req.file.path);
 
     const body = UpdateUserProfile.safeParse(req.body);
 
-  if (!body.success) {
-    return res.status(400).json({
-      errors: body.error.issues,
-    });
-  }
-  const { userName, email, phoneNumber, fullName } = body.data;
+    if (!body.success) {
+      return res.status(400).json({
+        errors: body.error.issues,
+      });
+    }
 
-    // Remove the file from the local directory
-    fs.unlinkSync(req.file.path);
+    const { userName, phoneNumber,  } = body.data;
 
-    const user = {
-      userName: userName,
-      email: email,
-      phoneNumber: phoneNumber,
-      fullName: fullName,
-      avatar: {
-        public_id: result.public_id,
-        url: result.secure_url,
+    // Update the user in the database
+     user = await User.findOneAndUpdate(
+      {_id:req.user.id  },
+      {
+        $set: {
+          userName: userName,
+          phoneNumber: phoneNumber,
+          'avatar.public_id': result.public_id,
+          'avatar.url': result.secure_url,
+        },
       },
-    };
-
-    await user.save;
+      { new: true }
+    );
 
     res.status(200).json({
-      msg: "User Profile Updated Successfully",
-      user,
+      msg: 'User Profile Updated Successfully',
+      user: {
+        userName,
+        phoneNumber,
+        avatar: {
+          public_id: result.public_id,
+          url: result.secure_url,
+        },
+      },
     });
   } catch (error) {
-    console.log("UPDATE USER ERROR", error);
+    console.log('UPDATE USER ERROR', error);
     res.status(500).json({
       errors: [
         {
-          error: "Server Error",
+          error: 'Server Error',
         },
       ],
     });
@@ -596,6 +616,7 @@ exports.getUserDetail = async(req, res) => {
   }
 }
 
+//DELETE USER FOR TESTING (by email)
 exports.deleteUser = async (req, res) => {
   const { email } = req.body; 
 
@@ -613,6 +634,36 @@ exports.deleteUser = async (req, res) => {
       });
     }   
 
+    res.status(200).json({
+      msg: "User Deleted",
+    });
+  } catch (error) {
+    console.log("DELETE USER ERROR", error);
+    res.status(500).json({
+      errors: [
+        {
+          error: "Server Error",
+        },
+      ],
+    });
+  }
+};
+// DELETE USER (where a user can delete their account by id)
+exports.deleteUser = async (req, res) => {
+  const {id} = req.user
+  try {
+    const findUser = await User.findById(id)
+    const user = await User.findByIdAndDelete(id);
+    console.log("USER=>", user)
+    if(!user){
+      return res.status(404).json({
+        errors: [
+          {
+            error: "User not found",
+          },
+        ],
+      });
+    }
     res.status(200).json({
       msg: "User Deleted",
     });
