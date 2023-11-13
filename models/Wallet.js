@@ -20,7 +20,12 @@ const WalletSchema = new Schema({
     availableBalance: {
         type: Number,
         default: 0
-    }
+    }, otp: {
+        type: String,
+    },
+      otpExpireIn: {
+        type: Number,
+      },
 }, {
     timestamps: true,
 });

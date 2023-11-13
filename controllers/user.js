@@ -284,7 +284,7 @@ exports.verifyForgotPasswordOtp = async (req, res) => {
 
     res.status(200).json({ message: "OTP Verified!" });
   } catch (error) {
-    console.log("VERIFY OTP ERROR", error);
+    console.log("VERIFY OTP ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };

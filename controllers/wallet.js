@@ -1,7 +1,14 @@
 const Wallet = require("models/Wallet");
 const User = require("models/User");
-const { WalletSchema, FundWalletSchema } = require("validations/wallet");
+const { WalletSchema, FundWalletSchema, ChangePinSchema ,ResetPinSchema, VerifyOtpPinSchema, SetPinSchema } = require("validations/wallet");
 const { encrypt } = require("helpers/auth");
+const { compare } = require("helpers/auth");
+const { generateOTP } = require("helpers/token");
+const { badRequest, notFound } = require("helpers/error");
+const verifyOTP = require("helpers/verifyOtp");
+const sendEmail = require("services/email");
+const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
+const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 // const WalletTransaction = require("models/WalletTransactionSchema")
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
@@ -59,7 +66,7 @@ exports.createPin = async (req, res) => {
 exports.changePin = async(req, res) => {
 
     const { id } = req.user;
-    const body = WalletSchema.safeParse(req.body);
+    const body = ChangePinSchema.safeParse(req.body);
     if (!body.success) return res.status(400).json({ errors: body.error.issues });
 
     try {
@@ -67,8 +74,8 @@ exports.changePin = async(req, res) => {
         const wallet = await Wallet.findOne({ user: id });
         if (!wallet) return res.status(400).json({ error: "Wallet not found" });
 
-        const { pin } = body.data;
-        const hashedPin = await encrypt(pin);
+        const { currentPin, newPin } = body.data;
+        const hashedPin = await encrypt(newPin);
         wallet.pin = hashedPin;
         await wallet.save();
         return res.status(200).json({ message: "Pin Changed Succesfully", wallet });
@@ -76,6 +83,105 @@ exports.changePin = async(req, res) => {
     } catch (error) {
         console.log("CHANGE WALLET PIN ERROR=>", error);
         res.status(500).json(error);
+    }
+}
+
+
+// RESET PIN 
+exports.resetPinOTP = async (req, res) => {
+  const { id } = req.user;
+  const user = await User.findById(id);
+  const body = ResetPinSchema.safeParse(req.body);
+  if (!body.success) return res.status(400).json({ errors: body.error.issues });
+
+  try {
+    const wallet = await Wallet.findOne({ user: id });
+    if (!wallet) return res.status(400).json({ error: "Wallet not found" });
+    const email = user.email;
+
+    const otpValue = generateOTP();
+
+        const otp = await encrypt(otpValue);
+
+                const userWallet = new Wallet({
+          ...body.data,
+          email,
+          otp,
+          otpExpireIn: new Date().getTime() + 30 * 60 * 1000, // To expire in 30 minutes.
+        });
+
+            const data = {
+          to: email,
+          text: "Swift RESET PIN OTP Verification",
+          subject: "Kindly Verify Your Account",
+          html: createAccountOtp(otpValue),
+        };
+        await sendEmail(data);
+
+        wallet.otp = otp;
+    await wallet.save();
+    return res.status(200).json({ message: "Reset OTP sent", wallet });
+
+  } catch (error) {
+    console.log("CHANGE WALLET PIN ERROR=>", error);
+    res.status(500).json(error);
+  }
+}
+
+// VERIFY RESET PIN OTP
+exports.verifyResetPinOTP = async (req, res) => {
+
+  const { id } = req.user;
+  const body = VerifyOtpPinSchema.safeParse(req.body);
+  if (!body.success) return res.status(400).json({ errors: body.error.issues });
+
+  try {
+    const wallet = await Wallet.findOne({ user: id });
+    if (!wallet) return res.status(400).json({ error: "Wallet not found" });
+    const { otp } = body.data;
+
+    if (!(await compare(otp, wallet.otp))) { 
+      return badRequest(res, "Invalid OTP");
+    }
+    if (getSecondsBetweenTime(wallet.otpExpireIn) > timeDifference["2m"]) {
+      return badRequest(res, "This otp has expired");
+    }
+
+    wallet.isPinSet = false;
+    await wallet.save();
+    return res.status(200).json({ message: "Reset OTP verified", wallet });
+
+  }
+  catch (error) {
+    console.log("VERIFY WALLET PIN ERROR=>", error);
+    res.status(500).json(error);
+  }
+}
+
+// SET NEW PIN
+exports.setNewPin = async (req, res) => {
+
+  const { id } = req.user;
+  const body = SetPinSchema.safeParse(req.body);
+  if (!body.success) return res.status(400).json({ errors: body.error.issues });
+
+  try {
+      
+      const wallet = await Wallet.findOne({ user: id });
+      if (!wallet) return res.status(400).json({ error: "Wallet not found" });
+  
+      const { newPin, confirmNewPin } = body.data;
+      const hashedPin = await encrypt(newPin);
+
+      wallet.isPinSet = true;
+      wallet.pin = hashedPin;
+      await wallet.save();
+      return res.status(200).json({ message: "Pin Changed Succesfully", wallet });
+  
+    }
+    catch (error) {
+      console.log("CHANGE WALLET PIN ERROR=>", error);
+      res.status(500).json(error);
     }
 }
 
@@ -98,4 +204,3 @@ exports.fundWallet = async (req, res) => {
         res.status(500).json(error);
     }
 }
-
