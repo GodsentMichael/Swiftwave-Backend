@@ -5,6 +5,8 @@ const airtimeRouter = require("routes/api/airtime.routes")
 // const walletRouter = require("routes/api/wallet.routes")
 const walletRouter = require(".././routes/api/wallet.routes")
 
+const waitlistRouter = require(".././routes/api/waitlist.routes")
+
 
 // define routes
 module.exports = function routes(app) {
@@ -19,5 +21,8 @@ module.exports = function routes(app) {
 
     // Wallet routes
       app.use("/api/wallet", walletRouter);
+
+    // Waitlist routes
+    app.use("/api/waitlist", waitlistRouter);
 
 }
