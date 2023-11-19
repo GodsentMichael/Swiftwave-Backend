@@ -1,9 +1,7 @@
 const z = require('zod')
 
-
-
 const ReportIssueSchema = z.object({
-    category: z.string()
+    complaintCategory: z.string()
         .min(3, { message: 'Category is too short' })
         .max(50, { message: 'Category is too long' })
         .refine((data) => {

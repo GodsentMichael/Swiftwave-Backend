@@ -65,11 +65,11 @@ exports.reportIssue = async (req, res) => {
         });
       }
   
-      const { category, subject, email, description,  } = body.data;
+      const { complaintCategory, subject, email, description,  } = body.data;
   
     // Save the report to db
         const report = new Report({
-            category,
+          complaintCategory,
             subject,
             email,
             description,
@@ -81,7 +81,7 @@ exports.reportIssue = async (req, res) => {
 
         await report.save()
 
-        // SEND MAIL TO SWIFT MANAGER EMAIL CONCERNING THE USER REPORT.
+        // SEND MAIL TO SWIFT USER.
         const data = {
             to: email,
             text: "Swiftwave Report Desk",
@@ -97,7 +97,7 @@ exports.reportIssue = async (req, res) => {
       res.status(200).json({
         msg: 'Report Submitted Successfully',
         report: {
-            category,
+          complaintCategory,
             subject,
             email,
             description,
