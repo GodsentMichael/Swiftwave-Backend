@@ -10,7 +10,7 @@ const reportSchema = new Schema({
   subject: { type: String, required: true },
   email: { type: String, required: true },
   description: { type: String, required: true },
-  image: { type: String }, // Assuming you store the image URL
+  image: { type: String },
   timestamp: { type: Date, default: Date.now },
 });
 

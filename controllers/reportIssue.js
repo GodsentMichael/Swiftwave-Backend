@@ -79,6 +79,8 @@ exports.reportIssue = async (req, res) => {
             },
         });
 
+        await report.save()
+
         // SEND MAIL TO SWIFT MANAGER EMAIL CONCERNING THE USER REPORT.
         const data = {
             to: email,
