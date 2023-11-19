@@ -553,6 +553,29 @@ exports.getUserDetail = async(req, res) => {
   }
 }
 
+// USER LOGOUT
+exports.userLogout = async (req, res) => {
+
+  // Get the token from the header
+  
+
+  const token = req.header('authorization');
+
+  if (!token) {
+    return res.status(401).json({
+      error: "Unauthorized",
+    });
+  }
+
+  // Add the token to the blacklist
+  await BlacklistToken.create({ token });
+
+  res.status(200).json({
+    message: "Logout Success",
+  });
+};
+
+
 // DELETE USER FOR TESTING (by email)
 exports.deleteUserByEmail = async (req, res) => {
   const { email } = req.body; 
@@ -587,38 +610,6 @@ exports.deleteUserByEmail = async (req, res) => {
 };
 
 // DELETE USER (where a user can delete their account by id)
-// exports.deleteUser = async (req, res) => {
- 
-//   try {
-//     const {id} = req.user
-
-//     const findUser = await User.findById(id)
-//     const user = await User.findByIdAndDelete(findUser.id);
-//     console.log("USER=>", user)
-//     if(!user){
-//       return res.status(404).json({
-//         errors: [
-//           {
-//             error: "User not found",
-//           },
-//         ],
-//       });
-//     }
-//     res.status(200).json({
-//       msg: "User Deleted",
-//     });
-//   } catch (error) {
-//     console.log("DELETE USER ERROR=>", error);
-//     res.status(500).json({
-//       errors: [
-//         {
-//           error: "Server Error",
-//         },
-//       ],
-//     });
-//   }
-// };
-
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.user;
