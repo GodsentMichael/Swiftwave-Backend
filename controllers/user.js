@@ -423,7 +423,7 @@ exports.changePassword = async (req, res) => {
   const {  currentPassword, newPassword, repeatNewPassword } = body.data;
 
   try {
-    // Find the user by id
+    //FIND THE USER BY id
     const user = await User.findById(req.user.id);
     console.log("USER=>", user);
 
@@ -431,17 +431,17 @@ exports.changePassword = async (req, res) => {
       return notFound(res, "User");
     }
 
-    // Verify if the old password matches the current password
+   // VERIFY IF CURRENT PASSWORD MATCHES NEW ONE
     const isPasswordMatch = await compare(currentPassword, user.password);
 
     if (!isPasswordMatch) {
       return badRequest(res, " Current password doesn't match");
     }
 
-    // Encrypt the new password
+    // ENCRYPT THE NEW PASSWORD
     const newPasswordHash = await encrypt(newPassword);
 
-    // Update the user's password with the new encrypted password
+    // THEN UPDATE THE USER'S PASSWORD WITH THE NEW ENCRYPTED PASSWORD
     user.password = newPasswordHash;
     await user.save();
 
