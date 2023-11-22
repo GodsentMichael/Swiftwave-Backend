@@ -50,6 +50,14 @@ const UpdatePasswordSchema = z
     path: ["newPassword"],
   });
 
+const ChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(4, "Password is too short"),
+    newPassword: z.string().min(4, "Password is too short"),
+    repeatNewPassword: z.string().min(4, "Password is too short"),
+  })
+  .strict()
+
 const UpdateEmail = z
   .object({
     otp: z.string().optional(),
@@ -65,13 +73,22 @@ const UpdateEmail = z
     newMail: z.string().email()
   }).strict()
 
+  const UpdateUserProfile = z.object({
+    userName: z.string().min(2, "username is too short"),
+    // fullName: z.string().min(2, "fullname is too short"),
+    // email: z.string().email("Invalid email"),
+    phoneNumber: z.string().min(10),
+  })
+
 module.exports = {
   UserSchema,
   VerifyUserSchema,
   LoginUserSchema,
   VerifyPasswordOtpSchema,
   UpdatePasswordSchema,
+  ChangePasswordSchema,
   UpdateEmail,
   ResetPasswordSchema,
-  UpdateEmailUpdated
+  UpdateEmailUpdated,
+  UpdateUserProfile
 };

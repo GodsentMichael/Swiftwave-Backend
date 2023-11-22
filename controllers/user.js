@@ -1,12 +1,14 @@
 const User = require("models/User");
+// const { uploader } = require("cloudinary");
+const fs = require("fs");
 const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 const {
   UserSchema,
   VerifyUserSchema,
   LoginUserSchema,
   VerifyPasswordOtpSchema,
-  UpdatePasswordSchema,
-  ResetPasswordSchema,
+  UpdatePasswordSchema,ChangePasswordSchema,
+  ResetPasswordSchema,UpdateUserProfile
 } = require("validations/user");
 const { encrypt } = require("helpers/auth");
 const { compare } = require("helpers/auth");
@@ -17,6 +19,7 @@ const { badRequest, notFound } = require("helpers/error");
 const verifyOTP = require("helpers/verifyOtp");
 const sendEmail = require("services/email");
 const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
+const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig")
 
 // CREATE/REGISTER  USER
 exports.createUser = async (req, res) => {
@@ -73,7 +76,7 @@ exports.createUser = async (req, res) => {
 
     res.status(201).json({
       msg: "account created",
-      refreshToken,
+      user
     });
   } catch (error) {
     console.log("CREATE USER ERROR", error);
@@ -97,12 +100,11 @@ exports.verifyUser = async (req, res) => {
     });
   }
   const { email, otp } = body.data;
-  console.log("EMAIL & OTP=>", otp, email);
+  // console.log("EMAIL & OTP=>", otp, email);
 
   try {
     const { error, user } = await validateUser(email, otp);
-    console.log("ERROR=>", error);
-    console.log("USER=>", user);
+    console.log("VERIFIED USER=>", user);
 
     if (error) {
       return badRequest(res, error);
@@ -282,7 +284,7 @@ exports.verifyForgotPasswordOtp = async (req, res) => {
 
     res.status(200).json({ message: "OTP Verified!" });
   } catch (error) {
-    console.log("VERIFY OTP ERROR", error);
+    console.log("VERIFY OTP ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };
@@ -294,22 +296,34 @@ exports.resetPassword = async (req, res) => {
     return res.status(400).json({ errors: body.error.issues });
   }
   const { email, newPassword, repeatPassword } = body.data;
+
+  if (newPassword !== repeatPassword) {
+    return res.status(400).json({ errors: [{ error: "Passwords do not match" }] });
+  }
   try {
     // Find the user by email
     const user = await User.findOne({ email });
-    console.log("USER=>", user);
+    console.log("USER ASKING TO RESET PASSSWORD=>", user);
     if (!user) {
       return notFound(res, "User not found");
     }
+
+      // Check if the new password is the same as the previous password
+      const isSamePassword = await compare(newPassword, user.password);
+
+      if (isSamePassword) {
+        return res.status(400).json({ errors: [{ error: "New Password cannot be the same as the previous one." }] });
+      }
+
     // Encrypt the new password
     const newPasswordHash = await encrypt(newPassword);
     // Update the user's password with the new encrypted password
     user.password = newPasswordHash;
     await user.save();
-    res.status(200).json({ message: "Password resetted successfully" });
+    res.status(200).json({ message: "Password has been successfully reset" });
     
   } catch (error) { 
-    console.log("RESET PASSWORD ERROR", error);
+    console.log("RESET PASSWORD ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };
@@ -398,6 +412,48 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
+// CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+  const body = ChangePasswordSchema.safeParse(req.body);
+
+  if (!body.success) {
+    return res.status(400).json({ errors: body.error.issues });
+  }
+
+  const {  currentPassword, newPassword, repeatNewPassword } = body.data;
+
+  try {
+    //FIND THE USER BY id
+    const user = await User.findById(req.user.id);
+    console.log("USER=>", user);
+
+    if (!user) {
+      return notFound(res, "User");
+    }
+
+   // VERIFY IF CURRENT PASSWORD MATCHES NEW ONE
+    const isPasswordMatch = await compare(currentPassword, user.password);
+
+    if (!isPasswordMatch) {
+      return badRequest(res, " Current password doesn't match");
+    }
+
+    // ENCRYPT THE NEW PASSWORD
+    const newPasswordHash = await encrypt(newPassword);
+
+    // THEN UPDATE THE USER'S PASSWORD WITH THE NEW ENCRYPTED PASSWORD
+    user.password = newPasswordHash;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Password changed successfully", data: true });
+  } catch (error) {
+    console.log("CHANGE PASSWORD ERROR=>", error);
+    res.status(500).json({ errors: [{ error: "Server Error" }] });
+  }
+};
+
 // TO GET ALL USERS
 exports.getAllUsers = async (req, res) => {
   try {
@@ -417,39 +473,153 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+// UPDATE USER PROFILE
+exports.updateUserInfo = async (req, res) => {
+  const MAX_RETRY_ATTEMPTS = 3;
+  const { id } = req.user;
+  try {
+    let user = await User.findById(id);
 
-// DELETE USER this is for testing purposes.
-// exports.deleteUser = async (req, res) => {
-//   const {id} = req.user
-//   try {
-//     const findUser = await User.findById(id)
-//     const user = await User.findByIdAndDelete(id);
-//     console.log("USER=>", user)
-//     if(!user){
-//       return res.status(404).json({
-//         errors: [
-//           {
-//             error: "User not found",
-//           },
-//         ],
-//       });
-//     }
-//     res.status(200).json({
-//       msg: "User Deleted",
-//     });
-//   } catch (error) {
-//     console.log("DELETE USER ERROR", error);
-//     res.status(500).json({
-//       errors: [
-//         {
-//           error: "Server Error",
-//         },
-//       ],
-//     });
-//   }
-// };
+    if (!user) {
+        return notFound(res, "User");
+    }
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'No profile image uploaded',
+      });
+    }
 
-exports.deleteUser = async (req, res) => {
+    let result;
+    let retryAttempts = 0;
+
+    // THIS IS TO RETRY THE CLOUDINARY UPLOAD IN CASE OF NETWORK UPLOAD
+    while (retryAttempts < MAX_RETRY_ATTEMPTS) {
+      try {
+        result = await uploader.upload(req.file.path, {
+          folder: 'avatars',
+        });
+
+        // IF THE UPLOAD IS SUCCESSFUL, BREAK OUT OF THE RETRY LOOP
+        break;
+      } catch (uploadError) {
+        console.error('Error uploading to Cloudinary=>', uploadError);
+
+        retryAttempts++;
+
+        if (retryAttempts < MAX_RETRY_ATTEMPTS) {
+          console.log(`Retrying upload (attempt ${retryAttempts})...`);
+        } else {
+          
+         // ONCE THE MAX ATTEMPT IS REACHED, THROW THE UPLOAD ERROR
+          throw uploadError;
+        }
+      }
+    }
+
+    // DELETE FILE FRO, THE SERVER FOLDER AFTER THE SUCCESSUL UPLOAD TO CLOUDINARY
+    fs.unlinkSync(req.file.path);
+
+    const body = UpdateUserProfile.safeParse(req.body);
+
+    if (!body.success) {
+      return res.status(400).json({
+        errors: body.error.issues,
+      });
+    }
+
+    const { userName, phoneNumber,  } = body.data;
+
+    // Update the user in the database
+     user = await User.findOneAndUpdate(
+      {_id:req.user.id  },
+      {
+        $set: {
+          userName: userName,
+          phoneNumber: phoneNumber,
+          'avatar.public_id': result.public_id,
+          'avatar.url': result.secure_url,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      msg: 'User Profile Updated Successfully',
+      user: {
+        userName,
+        phoneNumber,
+        avatar: {
+          public_id: result.public_id,
+          url: result.secure_url,
+        },
+      },
+    });
+  } catch (error) {
+    console.log('UPDATE USER ERROR=>', error);
+    res.status(500).json({
+      errors: [
+        {
+          error: 'Server Error',
+        },
+      ],
+    });
+  }
+};
+
+//GET A USER'S DETAILS
+exports.getUserDetail = async(req, res) => {
+  try {
+    const {id} = req.user
+
+    const userDetails = await User.find({_id:id})
+    if (!userDetails) {
+      return res.status(404).json({
+        errors: [
+          {
+            error: "User's details not found",
+          },
+        ],
+      });
+    }
+    return res.status(200).json({msg:"User successfully fetched", userDetails})
+
+  } catch (error) {
+    console.log("ERROR GETING USER DETAILS=>",error )
+    res.status(500).json({
+      errors: [
+        {
+          error: "Server Error",
+        },
+      ],
+    });
+  }
+}
+
+// USER LOGOUT
+exports.userLogout = async (req, res) => {
+
+  // Get the token from the header
+  
+
+  const token = req.header('authorization');
+
+  if (!token) {
+    return res.status(401).json({
+      error: "Unauthorized",
+    });
+  }
+
+  // Add the token to the blacklist
+  await BlacklistToken.create({ token });
+
+  res.status(200).json({
+    message: "Logout Success",
+  });
+};
+
+
+// DELETE USER FOR TESTING (by email)
+exports.deleteUserByEmail = async (req, res) => {
   const { email } = req.body; 
 
   try {
@@ -471,6 +641,38 @@ exports.deleteUser = async (req, res) => {
     });
   } catch (error) {
     console.log("DELETE USER ERROR", error);
+    res.status(500).json({
+      errors: [
+        {
+          error: "Server Error",
+        },
+      ],
+    });
+  }
+};
+
+// DELETE USER (where a user can delete their account by id)
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({
+        errors: [
+          {
+            error: "User not found",
+          },
+        ],
+      });
+    }
+
+    res.status(200).json({
+      msg: "User Deleted",
+    });
+  } catch (error) {
+    console.error("DELETE USER ERROR=>", error);
     res.status(500).json({
       errors: [
         {

@@ -1,8 +1,14 @@
 const Wallet = require("models/Wallet");
 const User = require("models/User");
-const { WalletSchema } = require("validations/wallet");
+const { WalletSchema, FundWalletSchema, ChangePinSchema ,ResetPinSchema, VerifyOtpPinSchema, SetPinSchema } = require("validations/wallet");
 const { encrypt } = require("helpers/auth");
+const { compare } = require("helpers/auth");
+const { generateOTP } = require("helpers/token");
 const { badRequest, notFound } = require("helpers/error");
+const verifyOTP = require("helpers/verifyOtp");
+const sendEmail = require("services/email");
+const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
+const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 // const WalletTransaction = require("models/WalletTransactionSchema")
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
@@ -11,7 +17,7 @@ exports.createWallet = async (req, res) => {
     const { id } = req.user;
     const user = await User.findById(id);
     console.log("USER=>", user);
-    const wallet = await Wallet.findOne({ user: user.id });
+    const wallet = await Wallet.findOne({ user:id });
 
     if (!user) return res.status(400).json({ error: "User not found" });
     if (wallet) return res.status(400).json({ error: "Wallet already exists" });
@@ -32,6 +38,7 @@ exports.createWallet = async (req, res) => {
   }
 };
 
+//TO CREATE PIN FOR THE WALLET
 exports.createPin = async (req, res) => {
   const { id } = req.user;
   const body = WalletSchema.safeParse(req.body);

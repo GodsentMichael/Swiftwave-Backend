@@ -1,5 +1,5 @@
 const {
-    createWallet, createPin, getUserWallet
+    createWallet, createPin, changePin,resetPinOTP,verifyResetPinOTP, setNewPin, fundWallet
   } = require("controllers/wallet");
 const { isAuthenticated } = require("middlewares/auth");
 const express = require("express");
@@ -17,9 +17,29 @@ router.post("/create", isAuthenticated, createWallet);
 // access private
 router.post("/create-pin", isAuthenticated, createPin)
 
-// route GET api/wallet/get-wallet
-// desc  get user's wallet
+// route POST api/wallet/create-pin
+// desc  create pin
 // access private
-router.get("/get-wallet", isAuthenticated, getUserWallet)
+router.post("/change-pin", isAuthenticated, changePin)
+
+// route POST api/wallet/reset-pin
+// desc  reset pin
+// access private
+router.post("/reset-pin", isAuthenticated, resetPinOTP)
+
+// route POST api/wallet/verify-otp
+// desc  verify pin
+// access private
+router.post("/verify-otp", isAuthenticated, verifyResetPinOTP)
+
+// route POST api/wallet/set-pin
+// desc  set pin
+// access private
+router.post("/set-pin", isAuthenticated, setNewPin)
+
+// route POST api/wallet/fund
+// desc  fund wallet
+// access private
+router.post("/fund",isAuthenticated ,fundWallet)
 
 module.exports = router;
