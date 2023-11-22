@@ -53,7 +53,7 @@ exports.airtimeRecharge = async(req, res) => {
         const transactionId = vtPassApiResponse.data.content.transactions.transactionId;
         console.log('transactionId=>', transactionId);
 
-        // Update the order status and transaction details in your database
+        // Update the order status and transaction details in the database
         if(vtPassApiResponse.data.response_description == 'TRANSACTION SUCCESSFUL'){
             airtimeOrder.status = 'delivered';
             airtimeOrder.transactionId = transactionId;
@@ -81,11 +81,14 @@ exports.airtimeRecharge = async(req, res) => {
 
 // Sandbox VT Pass API Key
 // 4e1612cf6892295194b7d8d5ec1fa6e3
+// a703cfa0a9e561a0e34836c9b92d82ea
 
 // Sandbox VT Pass Secret Key
 // SK_97968a275cd2b734468f85b28a9880c697a0a1d768b
+// SK_69273008f2539a79758f5eb344973391539534f5cce
 
-// Sandbox VT Pass Private Key
+// Sandbox VT Pass Public Key
 // PK_8271aa952342fec770931cc01932d9e08fa887ff302
+// PK_726f4e058d94123e9a49ad0255fad0285682bede443
 
 // https://sandbox.vtpass.com/api/

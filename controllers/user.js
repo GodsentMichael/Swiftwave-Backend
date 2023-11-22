@@ -146,7 +146,7 @@ exports.userLogin = async (req, res) => {
     if (!checkPassword) {
       return badRequest(res, "Incorrect credentials");
     }
-    //To check if user's verification is complete
+    //TO CHECK IF USER'S VERIFICATION IS COMPLETE
     const verifiedUser = checkUser.verified;
     console.log("VERIFIED USER=>", verifiedUser);
     if (verifiedUser === false) {
