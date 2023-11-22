@@ -1,6 +1,6 @@
 const {
     createUser,
-    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,getAllUsers, getUserDetail,updateUserInfo,deleteUserByEmail,deleteUser
+    userLogin,resendVerificationOTP,resendPasswordOTP,updatePassword,changePassword,getAllUsers, getUserDetail,updateUserInfo,deleteUserByEmail,deleteUser
   } = require("controllers/user");
   const express = require("express");
   const { isAuthenticated } = require("middlewares/auth");
@@ -34,6 +34,11 @@ const {
   // desc  update user password
   // access public
   router.put("/password", updatePassword);
+
+  // route PUT api/user/password/change
+  // desc  change user password
+  // access private
+  router.put("/password/change",isAuthenticated ,changePassword);
 
   // route GET api/user/get-users
   // desc  all users password

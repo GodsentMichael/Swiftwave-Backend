@@ -7,7 +7,7 @@ const {
   VerifyUserSchema,
   LoginUserSchema,
   VerifyPasswordOtpSchema,
-  UpdatePasswordSchema,
+  UpdatePasswordSchema,ChangePasswordSchema,
   ResetPasswordSchema,UpdateUserProfile
 } = require("validations/user");
 const { encrypt } = require("helpers/auth");
@@ -408,6 +408,48 @@ exports.updatePassword = async (req, res) => {
       .json({ message: "Password updated successfully", data: true });
   } catch (error) {
     console.log("UPDATE PASSWORD ERROR", error);
+    res.status(500).json({ errors: [{ error: "Server Error" }] });
+  }
+};
+
+// CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+  const body = ChangePasswordSchema.safeParse(req.body);
+
+  if (!body.success) {
+    return res.status(400).json({ errors: body.error.issues });
+  }
+
+  const {  currentPassword, newPassword, repeatNewPassword } = body.data;
+
+  try {
+    // Find the user by id
+    const user = await User.findById(req.user.id);
+    console.log("USER=>", user);
+
+    if (!user) {
+      return notFound(res, "User");
+    }
+
+    // Verify if the old password matches the current password
+    const isPasswordMatch = await compare(currentPassword, user.password);
+
+    if (!isPasswordMatch) {
+      return badRequest(res, " Current password doesn't match");
+    }
+
+    // Encrypt the new password
+    const newPasswordHash = await encrypt(newPassword);
+
+    // Update the user's password with the new encrypted password
+    user.password = newPasswordHash;
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: "Password changed successfully", data: true });
+  } catch (error) {
+    console.log("CHANGE PASSWORD ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };
