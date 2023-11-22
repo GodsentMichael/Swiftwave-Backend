@@ -16,9 +16,7 @@ const ChangePinSchema = z.object({
 }).strict()
 
 const ResetPinSchema = z.object({
-    // email: z.string().email(),
     // otp: z.string().min(4).max(4),
-    // newPin: z.string().min(4).max(4),
 }).strict()
 
 const VerifyOtpPinSchema = z.object({
