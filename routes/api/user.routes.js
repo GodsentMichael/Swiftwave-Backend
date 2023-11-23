@@ -53,6 +53,7 @@ const {
   // route POST api/user/update-profile
   // desc update  user's proile info
   // access private
+  //router.post("/update-profile", isAuthenticated, cloudinaryConfig, updateUserInfo);
   router.post("/update-profile",isAuthenticated,upload.single("image"), cloudinaryConfig, updateUserInfo)
 
   // route DELETE api/user/delete-user/:id

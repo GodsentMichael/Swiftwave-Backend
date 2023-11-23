@@ -2,6 +2,11 @@ const mongoose = require('mongoose')
 const {Schema, model} = mongoose
 
 const AirtimeSchema = new Schema({
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     phoneNumber: {
         type: Number,
         required: true,
@@ -17,13 +22,12 @@ const AirtimeSchema = new Schema({
         required: true,
         trim: true
     },
-    selectedPlan: {
-        type: String,
-      enum:  ["Daily", "Weekly", "Monthly", "Quarterly", "Yearly"]
-    },
     status: {
         type: String,
         default: 'pending'
+    },
+    requestId: {
+        type: String,
     },
     transactionId:{
         type: String,

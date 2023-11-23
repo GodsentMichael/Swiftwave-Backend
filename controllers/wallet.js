@@ -8,6 +8,7 @@ const {
   VerifyOtpPinSchema,
   SetPinSchema,
 } = require("validations/wallet");
+const axios = require('axios');
 const { encrypt } = require("helpers/auth");
 const { compare } = require("helpers/auth");
 const { generateOTP } = require("helpers/token");
@@ -19,6 +20,36 @@ const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 // const WalletTransaction = require("models/WalletTransactionSchema")
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
+// exports.createWallet = async (req, res) => {
+//   try {
+//     const { id } = req.user;
+//     const user = await User.findById(id);
+//     console.log("USER=>", user);
+//     const wallet = await Wallet.findOne({ user: id });
+
+//     if (!user) return res.status(400).json({ error: "User not found" });
+//     if (wallet) return res.status(400).json({ error: "Wallet already exists" });
+
+//     const createdWallet = await Wallet.create({
+//       user: user.id,
+//     });
+//     res
+//       .status(200)
+//       .json({ message: "Wallet Created Succesully", createdWallet });
+//   } catch (error) {
+//     console.log("WALLET CREATION=>",error);
+//     res.status(500).json({
+//       errors: [
+//         {
+//           error: "Server Error",
+//         },
+//       ],
+//     });
+//   }
+// };
+
+
+
 exports.createWallet = async (req, res) => {
   try {
     const { id } = req.user;
@@ -29,14 +60,38 @@ exports.createWallet = async (req, res) => {
     if (!user) return res.status(400).json({ error: "User not found" });
     if (wallet) return res.status(400).json({ error: "Wallet already exists" });
 
-    const createdWallet = await Wallet.create({
-      user: user.id,
+   
+
+    // Generate virtual account number using Paystack's Dedicated Account API
+    const paystackUrl = 'https://api.paystack.co/dedicated_account';
+    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY; 
+    const paystackHeaders = {
+      'Authorization': `Bearer ${paystackSecretKey}`,
+      'Content-Type': 'application/json',
+    };
+    const paystackData = {
+      customer: `Swift-${user.userName}`, 
+      preferred_bank: 'test-bank', 
+    };
+
+    const response = await axios.post(paystackUrl, paystackData, {
+      headers: paystackHeaders,
     });
-    res
-      .status(200)
-      .json({ message: "Wallet Created Succesully", createdWallet });
+
+    const { account_number } = response.data.data;
+
+    // Update the wallet with the generated virtual account number
+    createdWallet.virtualAccountNumber = account_number;
+     // Create a wallet in your app
+     const createdWallet = await Wallet.create({
+      user: user.id,
+      virtualAccountNumber:account_number
+    });
+    await createdWallet.save();
+
+    res.status(200).json({ message: "Wallet Created Successfully", createdWallet });
   } catch (error) {
-    console.log("WALLET CREATION=>",error);
+    console.log("WALLET CREATION=>", error);
     res.status(500).json({
       errors: [
         {
@@ -46,6 +101,9 @@ exports.createWallet = async (req, res) => {
     });
   }
 };
+
+//PAYSTACK KEY
+
 
 //TO CREATE PIN FOR THE WALLET
 exports.createPin = async (req, res) => {

@@ -1,7 +1,13 @@
 const mongoose = require('mongoose')
+const { Schema } = mongoose
 
 const ElectricityBillPaymentSchema = new mongoose.Schema(
     {
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
         phoneNumber: {
             type: String,
             required: true,

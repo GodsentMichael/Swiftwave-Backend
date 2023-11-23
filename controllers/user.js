@@ -474,6 +474,9 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // UPDATE USER PROFILE
+
+
+
 exports.updateUserInfo = async (req, res) => {
   const MAX_RETRY_ATTEMPTS = 3;
   const { id } = req.user;
@@ -481,12 +484,7 @@ exports.updateUserInfo = async (req, res) => {
     let user = await User.findById(id);
 
     if (!user) {
-        return notFound(res, "User");
-    }
-    if (!req.file) {
-      return res.status(400).json({
-        error: 'No profile image uploaded',
-      });
+      return notFound(res, "User");
     }
 
     let result;
@@ -495,29 +493,30 @@ exports.updateUserInfo = async (req, res) => {
     // THIS IS TO RETRY THE CLOUDINARY UPLOAD IN CASE OF NETWORK UPLOAD
     while (retryAttempts < MAX_RETRY_ATTEMPTS) {
       try {
-        result = await uploader.upload(req.file.path, {
-          folder: 'avatars',
-        });
+        const fileBuffer = req.file.buffer;
+
+    // CONVERT THE FILE BUFFER TO BASE64 STRING
+    const fileString = fileBuffer.toString('base64');
+
+    result = await uploader.upload(`data:image/png;base64,${fileString}`, {
+      folder: 'avatars',
+    });
 
         // IF THE UPLOAD IS SUCCESSFUL, BREAK OUT OF THE RETRY LOOP
         break;
       } catch (uploadError) {
-        console.error('Error uploading to Cloudinary=>', uploadError);
+        console.error('Error uploading to Cloudinary =>', uploadError);
 
         retryAttempts++;
 
         if (retryAttempts < MAX_RETRY_ATTEMPTS) {
           console.log(`Retrying upload (attempt ${retryAttempts})...`);
         } else {
-          
-         // ONCE THE MAX ATTEMPT IS REACHED, THROW THE UPLOAD ERROR
+          // ONCE THE MAX ATTEMPT IS REACHED, THROW THE UPLOAD ERROR
           throw uploadError;
         }
       }
     }
-
-    // DELETE FILE FRO, THE SERVER FOLDER AFTER THE SUCCESSUL UPLOAD TO CLOUDINARY
-    fs.unlinkSync(req.file.path);
 
     const body = UpdateUserProfile.safeParse(req.body);
 
@@ -527,11 +526,11 @@ exports.updateUserInfo = async (req, res) => {
       });
     }
 
-    const { userName, phoneNumber,  } = body.data;
+    const { userName, phoneNumber } = body.data;
 
     // Update the user in the database
-     user = await User.findOneAndUpdate(
-      {_id:req.user.id  },
+    user = await User.findOneAndUpdate(
+      { _id: req.user.id },
       {
         $set: {
           userName: userName,
@@ -555,7 +554,7 @@ exports.updateUserInfo = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log('UPDATE USER ERROR=>', error);
+    console.log('UPDATE USER ERROR =>', error);
     res.status(500).json({
       errors: [
         {
@@ -565,7 +564,6 @@ exports.updateUserInfo = async (req, res) => {
     });
   }
 };
-
 //GET A USER'S DETAILS
 exports.getUserDetail = async(req, res) => {
   try {

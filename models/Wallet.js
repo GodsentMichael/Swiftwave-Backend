@@ -23,6 +23,9 @@ const WalletSchema = new Schema({
     }, otp: {
         type: String,
     },
+    virtualAccountNumber: {
+        type: String,
+    },
       otpExpireIn: {
         type: Number,
       },
