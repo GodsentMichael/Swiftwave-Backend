@@ -112,8 +112,16 @@ const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
      console.log("USER=>", user);
      const wallet = await Wallet.findOne({ user: id });
 
-     if (!user) return res.status(400).json({ error: "User not found" });
-     if (wallet) return res.status(400).json({ error: "Wallet already exists" });
+     if(!user) return  res.status(400).json({ errors: [
+      {
+        error: "User not found",
+      },
+    ]})
+     if (wallet) return res.status(400).json({ errors: [
+      {
+        error: "Wallet already exists",
+      },
+    ]})
 
      const createdWallet = await Wallet.create({
        user: user.id,
