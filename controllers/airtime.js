@@ -83,7 +83,7 @@ exports.airtimeRecharge = async(req, res) => {
     // Send a confirmation email to the user
 
     if (airtimeOrder.status === 'delivered') {
-        return res.status(200).json({ message: vtPassApiResponse.data.response_description });
+        return res.status(200).json({ message: vtPassApiResponse.data});
     } else {
         return res.status(400).json({ message: vtPassApiResponse.data.response_description });
     }
