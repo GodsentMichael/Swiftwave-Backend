@@ -22,10 +22,10 @@ exports.reportIssue = async (req, res) => {
         const username = user.userName;
 
       if (!req.file) {
-        return res.status(400).json({
+        return res.status(400).json({ errors:[{
           error: 'No report image uploaded....',
-        });
-      }
+        }]
+      })}
   
       let result;
       let retryAttempts = 0;
@@ -62,7 +62,9 @@ exports.reportIssue = async (req, res) => {
   
       if (!body.success) {
         return res.status(400).json({
-          errors: body.error.issues,
+          errors:{
+            error: body.error.issues
+          } 
         });
       }
   
