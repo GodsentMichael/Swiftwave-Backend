@@ -41,6 +41,8 @@
     "nodemailer": "^6.9.4",
     "nodemon": "^3.0.1",
     "otp-generator": "^4.0.1",
+    "reflect-metadata": "^0.2.1",
+    "tsyringe": "^4.8.0",
     "zod": "^3.22.2"
   }
 }
