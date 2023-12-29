@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 const createAccountOtp = (otp) => {
-    return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
+  return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
 
           <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
               <tr>
@@ -34,7 +34,7 @@ const createAccountOtp = (otp) => {
 
 /* eslint-disable max-len */
 const resetPasswordOtp = (otp) => {
-    return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
+  return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
 
           <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
               <tr>
@@ -67,8 +67,8 @@ const resetPasswordOtp = (otp) => {
 };
 
 // Report acknpwledgement email
-const reportReceived = (username) =>{
-    return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
+const reportReceived = (username) => {
+  return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
 
     <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
         <tr>
@@ -97,8 +97,10 @@ const reportReceived = (username) =>{
 </table>
 
 </body>`;
-}
+};
 
 module.exports = {
-    createAccountOtp,resetPasswordOtp,reportReceived
+  createAccountOtp,
+  resetPasswordOtp,
+  reportReceived,
 };

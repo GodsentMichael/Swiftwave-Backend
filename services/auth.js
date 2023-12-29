@@ -1,6 +1,6 @@
-const { compare } = require("helpers/auth");
-const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
-const User = require("models/User");
+const { compare } = require("../helpers/auth");
+const { getSecondsBetweenTime, timeDifference } = require("../helpers/date");
+const User = require("../models/User");
 
 const validateUser = async (email, otp) => {
   try {
