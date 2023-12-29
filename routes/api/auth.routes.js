@@ -4,7 +4,7 @@ const {
   forgotPasswordOtp,
   verifyForgotPasswordOtp,
   resetPassword,
-} = require("controllers/user");
+} = require("../../controllers/user");
 const express = require("express");
 const { Router } = express;
 
