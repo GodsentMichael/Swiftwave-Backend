@@ -1,5 +1,7 @@
-const Wallet = require("models/Wallet");
-const User = require("models/User");
+const axios = require("axios");
+
+const Wallet = require("../models/Wallet");
+const User = require("../models/User");
 const {
   WalletSchema,
   FundWalletSchema,
@@ -7,16 +9,15 @@ const {
   ResetPinSchema,
   VerifyOtpPinSchema,
   SetPinSchema,
-} = require("validations/wallet");
-const axios = require("axios");
-const { encrypt } = require("helpers/auth");
-const { compare } = require("helpers/auth");
-const { generateOTP } = require("helpers/token");
-const { badRequest, notFound } = require("helpers/error");
-const verifyOTP = require("helpers/verifyOtp");
-const sendEmail = require("services/email");
-const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
-const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
+} = require("../validations/wallet");
+const { encrypt, compare } = require("../helpers/auth");
+const { generateOTP } = require("../helpers/token");
+const { badRequest, notFound } = require("../helpers/error");
+const verifyOTP = require("../helpers/verifyOtp");
+const sendEmail = require("../services/email");
+const { createAccountOtp, resetPasswordOtp } = require("../helpers/mails/otp");
+const { getSecondsBetweenTime, timeDifference } = require("../helpers/date");
+const { createUserWallet } = require("../services/wallet");
 // const WalletTransaction = require("models/WalletTransactionSchema")
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
@@ -101,40 +102,12 @@ const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 //PAYSTACK KEY
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
-const createWallet = async (id, res) => {
-  const user = await User.findById(id);
-  console.log("USER=>", user);
-  const wallet = await Wallet.findOne({ user: id });
-
-  if (!user)
-    return res.status(400).json({
-      errors: [
-        {
-          error: "User not found",
-        },
-      ],
-    });
-  if (wallet)
-    return res.status(400).json({
-      errors: [
-        {
-          error: "Wallet already exists",
-        },
-      ],
-    });
-
-  const createdWallet = await Wallet.create({
-    user: user.id,
-  });
-
-  return createdWallet;
-};
 
 exports.createWallet = async (req, res) => {
   try {
     const { id } = req.user;
 
-    const createdWallet = await createWallet(id, res);
+    const createdWallet = await createUserWallet(id, res);
     res
       .status(200)
       .json({ message: "Wallet Created Succesully", createdWallet });

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { unAuthorized } = require("../helpers/error");
+const { unAuthenticated } = require("../helpers/error");
 
 const isAuthenticated = async (req, res, next) => {
   // Check if token exists
@@ -13,7 +13,7 @@ const isAuthenticated = async (req, res, next) => {
 
   try {
     if (!token) {
-      return unAuthorized(res, "You are not authenticated");
+      return unAuthenticated(res);
     }
     // Verify token
     const decoded = jwt.verify(token, process.env.TOKEN_SECRET_KEY);

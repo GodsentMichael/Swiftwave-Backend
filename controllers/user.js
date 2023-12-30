@@ -22,7 +22,7 @@ const verifyOTP = require("../helpers/verifyOtp");
 const sendEmail = require("../services/email");
 const { createAccountOtp, resetPasswordOtp } = require("../helpers/mails/otp");
 const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig");
-const { createWallet } = require("./wallet");
+const { createUserWallet } = require("../services/wallet");
 
 // CREATE/REGISTER  USER
 exports.createUser = async (req, res) => {
@@ -103,18 +103,15 @@ exports.verifyUser = async (req, res) => {
     });
   }
   const { email, otp } = body.data;
-  // console.log("EMAIL & OTP=>", otp, email);
 
   try {
     const { error, user } = await validateUser(email, otp);
-    console.log("VERIFIED USER=>", user);
 
     if (error) {
       return badRequest(res, error);
     }
 
-    req.user.id = user._id;
-    await createWallet(req, res);
+    await createUserWallet(user._id, res);
 
     res.status(200).json({
       verified: user.verified,
@@ -156,7 +153,6 @@ exports.userLogin = async (req, res) => {
     }
     //TO CHECK IF USER'S VERIFICATION IS COMPLETE
     const verifiedUser = checkUser.verified;
-    console.log("VERIFIED USER=>", verifiedUser);
     if (verifiedUser === false) {
       return res.status(400).json({
         error: "User not verified, please verify your account",

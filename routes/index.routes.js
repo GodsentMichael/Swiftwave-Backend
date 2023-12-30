@@ -3,7 +3,7 @@ const userRouter = require("../routes/api/user.routes");
 const authRouter = require("../routes/api/auth.routes");
 const airtimeRouter = require("../routes/api/airtime.routes");
 const electricityRouter = require("../routes/api/electricity.routes");
-const walletRouter = require(".././routes/api/wallet.routes");
+const walletRouter = require("../routes/api/wallet.routes");
 const waitlistRouter = require(".././routes/api/waitlist.routes");
 const reportRouter = require("../routes/api/report-issue.routes");
 
