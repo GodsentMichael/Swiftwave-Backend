@@ -1,12 +1,10 @@
 const { container } = require("tsyringe");
-const { injectable } = require("tsyringe");
 
 const { financialProvider } = require("../../../configs/env.config");
 const { HTTPClient } = require("../../../utils/http.util");
 
 const { apiKey, baseURL, secretKey } = financialProvider.monnify;
 
-@injectable()
 class MonnifyProvider {
   constructor() {
     const authHeader = `Basic ${Buffer.from(`${apiKey}:${secretKey}`).toString(

@@ -6,6 +6,7 @@ const electricityRouter = require("../routes/api/electricity.routes");
 const walletRouter = require("../routes/api/wallet.routes");
 const waitlistRouter = require(".././routes/api/waitlist.routes");
 const reportRouter = require("../routes/api/report-issue.routes");
+const monifyRouter = require("../routes/api/monify.routes");
 
 // define routes
 module.exports = function routes(app) {
@@ -29,4 +30,7 @@ module.exports = function routes(app) {
 
   // Report routes
   app.use("/api/report", reportRouter);
+
+  // monify routes
+  app.use("/api/monnify", monifyRouter);
 };

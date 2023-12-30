@@ -7,6 +7,7 @@ const dotenv = require("dotenv").config();
 const cors = require("cors");
 
 const db = require("../configs/dbConfig");
+const { AppError } = require("../helpers/error");
 
 // App Init
 const app = express();
@@ -27,5 +28,18 @@ require("../routes/index.routes")(app);
 
 // Calling the db connection function.
 db();
+
+app.use((error, req, res, next) => {
+  error.status = error.status || "error";
+  error.statusCode = error.statusCode || 500;
+
+  res.status(error.statusCode).json({
+    errors: [
+      {
+        error: error.message,
+      },
+    ],
+  });
+});
 
 module.exports = app;
