@@ -19,7 +19,10 @@ class MonnifyController {
 
   createInvoiceReservedAccount = async (req, res, next) => {
     try {
-      const response = await this.monnifyService.createInvoiceReservedAccount();
+      const { id } = req.user;
+      const response = await this.monnifyService.createInvoiceReservedAccount(
+        id
+      );
 
       res.status(200).send(response);
     } catch (error) {

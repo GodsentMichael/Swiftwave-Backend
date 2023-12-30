@@ -3,6 +3,7 @@ const { isAxiosError } = require("axios");
 
 const MonnifyProvider = require("../implementations/finance/monnify/monnify.implementation");
 const { AppError } = require("../helpers/error");
+const { findUserById } = require("./user");
 
 class MonnifyService {
   constructor() {
@@ -24,12 +25,15 @@ class MonnifyService {
     }
   }
 
-  async createInvoiceReservedAccount(name, email, accountName) {
+  async createInvoiceReservedAccount(id) {
     try {
+      const user = await findUserById(id);
+
+      const { userName, email } = user;
       const response = await this.monnifyProvider.createInvoiceReservedAccount(
-        name,
+        userName,
         email,
-        accountName
+        userName
       );
 
       return response;
@@ -37,7 +41,7 @@ class MonnifyService {
       if (isAxiosError(error)) {
         throw new AppError(
           Number(error.response?.status),
-          error.response?.data.message
+          error.response?.data?.error_description
         );
       }
       throw new AppError(error.statusCode, error.response?.data?.message);

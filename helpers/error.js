@@ -25,24 +25,18 @@ const formatServerError = (res, message, error) => {
   res.status(500).json({ errors: [{ error: "Server Error" }] });
 };
 
-const AppError = (
-  statusCode,
-  message,
-  cause,
-  errorCode,
-  isOperational = true
-) => {
-  const error = new Error(message);
+class AppError extends Error {
+  constructor(statusCode, message, cause, errorCode, isOperational = true) {
+    super(message);
 
-  error.statusCode = statusCode;
-  error.cause = cause instanceof Error ? cause : undefined;
-  error.errorCode = errorCode;
-  error.isOperational = isOperational;
+    this.statusCode = statusCode;
+    this.cause = cause instanceof Error ? cause : undefined;
+    this.errorCode = errorCode;
+    this.isOperational = isOperational;
 
-  Error.captureStackTrace(error, createAppError);
-
-  return error;
-};
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
 
 module.exports = {
   unAuthorized,
