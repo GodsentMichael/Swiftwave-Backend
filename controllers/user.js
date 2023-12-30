@@ -22,6 +22,7 @@ const verifyOTP = require("../helpers/verifyOtp");
 const sendEmail = require("../services/email");
 const { createAccountOtp, resetPasswordOtp } = require("../helpers/mails/otp");
 const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig");
+const { createWallet } = require("./wallet");
 
 // CREATE/REGISTER  USER
 exports.createUser = async (req, res) => {
@@ -111,6 +112,9 @@ exports.verifyUser = async (req, res) => {
     if (error) {
       return badRequest(res, error);
     }
+
+    req.user.id = user._id;
+    await createWallet(req, res);
 
     res.status(200).json({
       verified: user.verified,

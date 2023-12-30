@@ -2,7 +2,11 @@ const z = require("zod");
 
 const UserSchema = z
   .object({
-    userName: z.string().min(2, "username is too short"),
+    userName: z
+      .string({
+        required_error: "username is required",
+      })
+      .min(2, "username is too short"),
     howDidYouHear: z
       .enum([
         "Television",
@@ -13,8 +17,16 @@ const UserSchema = z
         "Friends",
       ])
       .optional(),
-    email: z.string().email("Invalid email"),
-    phoneNumber: z.string().min(10),
+    email: z
+      .string({
+        required_error: "email is required",
+      })
+      .email("Invalid email"),
+    phoneNumber: z
+      .string({
+        required_error: "phone number is required",
+      })
+      .min(10),
     password: z.string().min(8, "Password is too short"),
   })
   .strict();

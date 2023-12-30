@@ -101,33 +101,40 @@ const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 //PAYSTACK KEY
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
+const createWallet = async (id, res) => {
+  const user = await User.findById(id);
+  console.log("USER=>", user);
+  const wallet = await Wallet.findOne({ user: id });
+
+  if (!user)
+    return res.status(400).json({
+      errors: [
+        {
+          error: "User not found",
+        },
+      ],
+    });
+  if (wallet)
+    return res.status(400).json({
+      errors: [
+        {
+          error: "Wallet already exists",
+        },
+      ],
+    });
+
+  const createdWallet = await Wallet.create({
+    user: user.id,
+  });
+
+  return createdWallet;
+};
+
 exports.createWallet = async (req, res) => {
   try {
     const { id } = req.user;
-    const user = await User.findById(id);
-    console.log("USER=>", user);
-    const wallet = await Wallet.findOne({ user: id });
 
-    if (!user)
-      return res.status(400).json({
-        errors: [
-          {
-            error: "User not found",
-          },
-        ],
-      });
-    if (wallet)
-      return res.status(400).json({
-        errors: [
-          {
-            error: "Wallet already exists",
-          },
-        ],
-      });
-
-    const createdWallet = await Wallet.create({
-      user: user.id,
-    });
+    const createdWallet = await createWallet(id, res);
     res
       .status(200)
       .json({ message: "Wallet Created Succesully", createdWallet });
