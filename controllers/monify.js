@@ -16,6 +16,16 @@ class MonnifyController {
       next(error);
     }
   };
+
+  createInvoiceReservedAccount = async (req, res, next) => {
+    try {
+      const response = await this.monnifyService.createInvoiceReservedAccount();
+
+      res.status(200).send(response);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = { MonnifyController };

@@ -42,4 +42,5 @@ console.log("random alpha numeric =>", randomAlphaNumeric);
 
 module.exports = {
   generateRequestId,
+  generateRandomAlphanumeric,
 };

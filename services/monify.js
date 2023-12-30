@@ -23,6 +23,26 @@ class MonnifyService {
       throw new AppError(error.statusCode, error.response?.data?.message);
     }
   }
+
+  async createInvoiceReservedAccount(name, email, accountName) {
+    try {
+      const response = await this.monnifyProvider.createInvoiceReservedAccount(
+        name,
+        email,
+        accountName
+      );
+
+      return response;
+    } catch (error) {
+      if (isAxiosError(error)) {
+        throw new AppError(
+          Number(error.response?.status),
+          error.response?.data.message
+        );
+      }
+      throw new AppError(error.statusCode, error.response?.data?.message);
+    }
+  }
 }
 
 module.exports = { MonnifyService };
