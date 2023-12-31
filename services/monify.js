@@ -18,7 +18,7 @@ class MonnifyService {
       if (isAxiosError(error)) {
         throw new AppError(
           Number(error.response?.status),
-          error.response?.data.message
+          error.response?.data?.error_description
         );
       }
       throw new AppError(error.statusCode, error.response?.data?.message);

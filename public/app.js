@@ -8,6 +8,7 @@ const cors = require("cors");
 
 const db = require("../configs/dbConfig");
 const { AppError } = require("../helpers/error");
+const { expressPinoLogger, logger } = require("../utils/logger.util");
 
 // App Init
 const app = express();
@@ -16,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(expressPinoLogger({ logger }));
 
 // App Home Route
 app.get("/", (req, res) => {
