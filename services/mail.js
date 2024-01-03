@@ -16,7 +16,7 @@ const sendMail = async (data) => {
   const { from, to, subject, params, ...props } = data;
 
   const messageBody = {
-    from: from ?? "Swiftwave <no-reply@swiftwave.com.ng>",
+    from: from ?? "Swiftvista <no-reply@swiftvista.com>",
     to,
     subject,
   };

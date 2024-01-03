@@ -7,7 +7,7 @@ const reportSchema = new Schema({
     enum: [
       "Bills Payment",
       "Account Top-up",
-      "Trnsaction Pin",
+      "Transaction Pin",
       "Account Verification",
       "Others",
     ],

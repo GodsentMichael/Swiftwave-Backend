@@ -21,7 +21,7 @@ app.use(expressPinoLogger({ logger }));
 
 // App Home Route
 app.get("/", (req, res) => {
-  res.send("Welcome to the Swift-wave API");
+  res.send("Welcome to the Swift-vista API");
 });
 
 // Register Routes

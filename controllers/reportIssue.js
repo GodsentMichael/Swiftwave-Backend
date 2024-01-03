@@ -6,7 +6,7 @@ const User = require("models/User");
 const { ReportIssueSchema } = require("validations/reportIssue");
 const { badRequest, notFound } = require("helpers/error");
 const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig");
-const { reportReceived } = require("helpers/mails/otp");
+const { reportReceived, reportSent } = require("helpers/mails/otp");
 const sendEmail = require("services/email");
 
 exports.reportIssue = async (req, res) => {
@@ -34,7 +34,7 @@ exports.reportIssue = async (req, res) => {
     let result;
     let retryAttempts = 0;
 
-    // THIS IS TO RETRY THE CLOUDINARY UPLOAD IN CASE OF NETWORK UPLOAD
+    // THIS IS TO RETRY THE CLOUDINARY UPLOAD IN CASE OF NETWORK UPLOAD LAG
     while (retryAttempts < MAX_RETRY_ATTEMPTS) {
       try {
         const fileBuffer = req.file.buffer;
@@ -88,18 +88,26 @@ exports.reportIssue = async (req, res) => {
 
     await report.save();
 
+    const swiftvistaEmail = "swiftvistaapp@gmail.com";
+
     // SEND MAIL TO SWIFT USER.
     const data = {
       to: email,
-      text: "Swiftwave Report Desk",
-      subject: "Your Swiftwave Report: We've Got It",
+      text: "Swiftvista Report Desk",
+      subject: "Your Swiftvista Report: We've Got It",
       html: reportReceived(username),
     };
     await sendEmail(data);
 
-    //TODO
-    // Find a way to notify swiftwave that a report was sent to them, so they can look into it.
-    // For now we'd just check the sent emails part of the gmail sending these emails.
+    // SEND MAIL TO SWIFTVISTA SUPPORT.
+    const imageUrl = result.secure_url;
+    const datum = {
+      to: swiftvistaEmail,
+      text: "Customer Report",
+      subject: "A Customer Has Just Tabled A Complaint",
+      html: reportSent(username, complaintCategory, subject, email, description, imageUrl),
+    };
+    await sendEmail(datum);
 
     res.status(200).json({
       msg: "Report Submitted Successfully",

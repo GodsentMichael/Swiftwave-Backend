@@ -32,18 +32,18 @@ exports.airtimeRecharge = async(req, res) => {
         })
 
         const requestId = generateRequestId();
-        console.log('request_id =>', requestId)
+        // console.log('request_id =>', requestId)
         
         // TO MAKE THE CALL TO VTPASS ENDPOINTS AND BUY THE Airtime.
         const vtPassApiUrl = process.env.VTPASS_API_URL
-        console.log("vtPassApiUrl =>", vtPassApiUrl)
+        // console.log("vtPassApiUrl =>", vtPassApiUrl)
 
         const vtPassApiKey= process.env.VTPASS_API_KEY
         const vtPassSecretKey = process.env.VTPASS_SECRET_KEY
         const vtPassPublicKey = process.env.VTPASS_PUBLIC_KEY
-        console.log("vtPassApiKey =>", vtPassApiKey)
-        console.log("vtPassSecretKey =>", vtPassSecretKey)
-        console.log("vtPassPublicKey =>", vtPassPublicKey)
+        // console.log("vtPassApiKey =>", vtPassApiKey)
+        // console.log("vtPassSecretKey =>", vtPassSecretKey)
+        // console.log("vtPassPublicKey =>", vtPassPublicKey)
         const vtPassApiResponse = await axios.post(
             vtPassApiUrl,
             {
@@ -63,9 +63,9 @@ exports.airtimeRecharge = async(req, res) => {
         }
         
         )
-        console.log('VT Pass API Response=>', vtPassApiResponse.data);
+        // console.log('VT Pass API Response=>', vtPassApiResponse.data);
         const transactionId = vtPassApiResponse.data.content.transactions.transactionId;
-        console.log('transactionId=>', transactionId);
+        // console.log('transactionId=>', transactionId);
         //const requestId = vtPassApiResponse.data.content.
 
         // Update the order status and transaction details in the database
@@ -169,7 +169,7 @@ exports.getAllAirtimeTransactions = async (req, res) => {
         return res.status(200).json({data: allAirtimeTransaction})
 
         } catch (error) {
-            console.log("GET ALL TRANSACTIONS ERROR=>", error)
+            console.log("GET ALL AIRTIME TRANSACTIONS ERROR=>", error)
             res.status(500).json({
               errors: [
                 {
@@ -195,7 +195,7 @@ exports.checkAirtimeCountries = async (req, res) =>{
              
         // TO MAKE THE CALL TO VTPASS ENDPOINTS AND BUY THE Airtime.
         const vtPassApiUrl = process.env.VTPASS_API_URL_COUNTRIES
-        console.log("vtPassApiUrl =>", vtPassApiUrl)
+        // console.log("vtPassApiUrl =>", vtPassApiUrl)
 
         const vtPassApiKey= process.env.VTPASS_API_KEY
         const vtPassSecretKey = process.env.VTPASS_SECRET_KEY
@@ -213,7 +213,7 @@ exports.checkAirtimeCountries = async (req, res) =>{
         }
         
         )
-        console.log('VT Pass API Response=>', vtPassApiResponse.data);
+        // console.log('VT Pass API Response=>', vtPassApiResponse.data);
 
         // Update the order status and transaction details in the database
         if(vtPassApiResponse.data.response_description == 'TRANSACTION SUCCESSFUL'){
@@ -237,7 +237,7 @@ exports.checkAirtimeCountries = async (req, res) =>{
     }
     }
     catch (error) {
-        console.error('RECHARGE AIRTIME ERROR=>', error);
+        console.error('GET AIRTIME COUNTRIES ERROR=>', error);
         res.status(500).json({
           errors: [
             {
