@@ -79,7 +79,7 @@ const reportSent = (username, complaintCategory, subject, email, description, im
           <tr>
               <td style="text-align: center; margin: 20px 0;">
                   <p style="font-size: 24px; font-weight: bold;">Swiftvista support</p>
-                  <p style="color: #475467; font-size: 16px;"> New Customer Complaint 📣.</p>
+                  <p style="color: #475467; font-size: 16px;"> Customer Complaint 📣.</p>
                   <p style="font-size: 12px; margin: 5px 0;"> A customer has reported an issue. Here are the details:.</p>
                   <ul style="list-style: none; padding: 0; margin: 10px 0;">
                   <li style="font-size: 14px; color: #475467;">Customer Name: ${username} </li>
