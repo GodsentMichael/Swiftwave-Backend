@@ -5,7 +5,7 @@ const createAccountOtp = (otp) => {
           <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
               <tr>
                   <td style="text-align: center;">
-                  <p style="font-size: 12px; font-weight: bold; margin: 5px 0;"> SWIFTWAVE.</p>
+                  <p style="font-size: 12px; font-weight: bold; margin: 5px 0;"> SWIFT.</p>
                   </td>
               </tr>
               <tr>
@@ -39,7 +39,7 @@ const resetPasswordOtp = (otp) => {
           <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
               <tr>
                   <td style="text-align: center;">
-                  <p style="font-size: 12px; font-weight: bold; margin: 5px 0;"> SWIFTWAVE.</p>
+                  <p style="font-size: 12px; font-weight: bold; margin: 5px 0;"> SWIFT.</p>
                   </td>
               </tr>
               <tr>
@@ -67,38 +67,36 @@ const resetPasswordOtp = (otp) => {
 };
 
 // Report acknpwledgement email
-const reportReceived = (username) =>{
+const kycReceived = (username, image) => {
     return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
-
-    <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
-        <tr>
-            <td style="text-align: center;">
-            <p style="font-size: 12px; font-weight: bold; margin: 5px 0;"> SWIFTWAVE.</p>
-            </td>
-        </tr>
-        <tr>
-            <td style="text-align: center; margin: 20px 0;">
-                <p style="font-size: 24px; font-weight: bold;">Hi 👋 ${username}</p>
-                <p style="color: #475467; font-size: 16px;"> We have received your report and we are working on it. We will get back to you as soon as possible.</p>
-                <p style="font-size: 12px; margin: 5px 0;">This email was sent to you because you reported an issue to us. If you did not report any issue, please ignore this email.</p>
-          
-            </td>
-        </tr>
-        <tr>
-        <td style="background-color: #F2F4F7; padding: 20px; text-align: center;">
-             
-            <p style="font-size: 12px; font-weight: bold; margin: 5px 0;">© 2023 Swiftwave. All rights reserved.</p>
-            <p style="font-size: 12px; margin: 5px 0;">Follow us</p>
-            <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://img.freepik.com/premium-vector/purple-gradiend-social-media-logo_197792-1883.jpg" alt="Instagram">
-            <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/640px-LinkedIn_logo_initials.png" alt="LinkedIn">
-            <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" alt="Twitter">
-        </td>
-    </tr>
-</table>
-
-</body>`;
-}
+      <table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
+          <tr>
+              <td style="text-align: center;">
+                  <p style="font-size: 12px; font-weight: bold; margin: 5px 0;">ALLYS TRADE.</p>
+              </td>
+          </tr>
+          <tr>
+              <td style="text-align: center; margin: 20px 0;">
+                  <p style="font-size: 24px; font-weight: bold;">Hi 👋 ${username}</p>
+                  <p style="color: #475467; font-size: 16px;">We have received your KYC information and it is currently being reviewed. We will get back to you as soon as possible.</p>
+                  <img src="${image}" alt="KYC Document" style="max-width: 100%;">
+                  <p style="font-size: 12px; margin: 5px 0;">This email was sent to you because you submitted your KYC information. If you have any questions, please contact our support team.</p>
+              </td>
+          </tr>
+          <tr>
+              <td style="background-color: #F2F4F7; padding: 20px; text-align: center;">
+                  <p style="font-size: 12px; font-weight: bold; margin: 5px 0;">© 2023 Swiftwave. All rights reserved.</p>
+                  <p style="font-size: 12px; margin: 5px 0;">Follow us</p>
+                  <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://img.freepik.com/premium-vector/purple-gradiend-social-media-logo_197792-1883.jpg" alt="Instagram">
+                  <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/640px-LinkedIn_logo_initials.png" alt="LinkedIn">
+                  <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" alt="Twitter">
+              </td>
+          </tr>
+      </table>
+  </body>`;
+  };
+  
 
 module.exports = {
-    createAccountOtp,resetPasswordOtp,reportReceived
+    createAccountOtp,resetPasswordOtp,kycReceived
 };

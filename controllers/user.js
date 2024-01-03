@@ -1,5 +1,4 @@
 const User = require("models/User");
-// const { uploader } = require("cloudinary");
 const fs = require("fs");
 const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 const {
@@ -18,7 +17,7 @@ const { generateOTP } = require("helpers/token");
 const { badRequest, notFound } = require("helpers/error");
 const verifyOTP = require("helpers/verifyOtp");
 const sendEmail = require("services/email");
-const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
+const { createAccountOtp, resetPasswordOtp,kycReceived } = require("helpers/mails/otp");
 const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig")
 
 // CREATE/REGISTER  USER
