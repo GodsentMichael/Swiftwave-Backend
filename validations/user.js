@@ -1,18 +1,49 @@
 const z = require("zod");
 
-const UserSchema = z.object({
-  userName: z.string().min(2, "username is too short"),
-  howDidYouHear: z.enum(["Television", "Twitter", "Instagram", "Youtube", "LinkedIn",  "Friends"],  ).optional(),
-  email: z.string().email("Invalid email"),
-  phoneNumber: z.string().min(10),
-  password: z.string().min(8, "Password is too short"),
-})
+const UserSchema = z
+  .object({
+    userName: z
+      .string({
+        required_error: "username is required",
+      })
+      .min(2, "username is too short"),
+    howDidYouHear: z
+      .enum([
+        "Television",
+        "Twitter",
+        "Instagram",
+        "Youtube",
+        "LinkedIn",
+        "Friends",
+      ])
+      .optional(),
+    email: z
+      .string({
+        required_error: "email is required",
+      })
+      .email("Invalid email"),
+    phoneNumber: z
+      .string({
+        required_error: "phone number is required",
+      })
+      .min(10),
+    password: z.string().min(8, "Password is too short"),
+  })
   .strict();
 
 const VerifyUserSchema = z
   .object({
-    email: z.string().email(),
-    otp: z.string().min(4).max(4),
+    email: z
+      .string({
+        required_error: "email address is required",
+      })
+      .email("invalid email address"),
+    otp: z
+      .string({
+        required_error: "otp is required",
+      })
+      .min(4, "otp must be 4 characters long")
+      .max(4, "otp can only be 4 characters long"),
   })
   .strict();
 
@@ -56,7 +87,7 @@ const ChangePasswordSchema = z
     newPassword: z.string().min(4, "Password is too short"),
     repeatNewPassword: z.string().min(4, "Password is too short"),
   })
-  .strict()
+  .strict();
 
 const UpdateEmail = z
   .object({
@@ -67,18 +98,20 @@ const UpdateEmail = z
   })
   .strict();
 
-  const UpdateEmailUpdated = z.object({
+const UpdateEmailUpdated = z
+  .object({
     email: z.string().email(),
     password: z.string(),
-    newMail: z.string().email()
-  }).strict()
-
-  const UpdateUserProfile = z.object({
-    userName: z.string().min(2, "username is too short"),
-    // fullName: z.string().min(2, "fullname is too short"),
-    // email: z.string().email("Invalid email"),
-    phoneNumber: z.string().min(10),
+    newMail: z.string().email(),
   })
+  .strict();
+
+const UpdateUserProfile = z.object({
+  userName: z.string().min(2, "username is too short"),
+  // fullName: z.string().min(2, "fullname is too short"),
+  // email: z.string().email("Invalid email"),
+  phoneNumber: z.string().min(10),
+});
 
 module.exports = {
   UserSchema,
@@ -90,5 +123,5 @@ module.exports = {
   UpdateEmail,
   ResetPasswordSchema,
   UpdateEmailUpdated,
-  UpdateUserProfile
+  UpdateUserProfile,
 };

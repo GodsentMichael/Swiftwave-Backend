@@ -1,24 +1,28 @@
-const User = require("models/User");
+const User = require("../models/User");
+// const { uploader } = require("cloudinary");
 const fs = require("fs");
-const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
+const { getSecondsBetweenTime, timeDifference } = require("../helpers/date");
 const {
   UserSchema,
   VerifyUserSchema,
   LoginUserSchema,
   VerifyPasswordOtpSchema,
-  UpdatePasswordSchema,ChangePasswordSchema,
-  ResetPasswordSchema,UpdateUserProfile
-} = require("validations/user");
-const { encrypt } = require("helpers/auth");
-const { compare } = require("helpers/auth");
-const { generateToken, generateRefreshToken } = require("helpers/token");
-const { validateUser } = require("services/auth");
-const { generateOTP } = require("helpers/token");
-const { badRequest, notFound } = require("helpers/error");
-const verifyOTP = require("helpers/verifyOtp");
-const sendEmail = require("services/email");
-const { createAccountOtp, resetPasswordOtp,kycReceived } = require("helpers/mails/otp");
-const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig")
+  UpdatePasswordSchema,
+  ChangePasswordSchema,
+  ResetPasswordSchema,
+  UpdateUserProfile,
+} = require("../validations/user");
+const { encrypt } = require("../helpers/auth");
+const { compare } = require("../helpers/auth");
+const { generateToken, generateRefreshToken } = require("../helpers/token");
+const { validateUser } = require("../services/auth");
+const { generateOTP } = require("../helpers/token");
+const { badRequest, notFound } = require("../helpers/error");
+const verifyOTP = require("../helpers/verifyOtp");
+const sendEmail = require("../services/email");
+const { createAccountOtp, resetPasswordOtp } = require("../helpers/mails/otp");
+const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig");
+const { createUserWallet } = require("../services/wallet");
 
 // CREATE/REGISTER  USER
 exports.createUser = async (req, res) => {
@@ -75,7 +79,7 @@ exports.createUser = async (req, res) => {
 
     res.status(201).json({
       msg: "account created",
-      user
+      user,
     });
   } catch (error) {
     console.log("CREATE USER ERROR", error);
@@ -99,15 +103,15 @@ exports.verifyUser = async (req, res) => {
     });
   }
   const { email, otp } = body.data;
-  // console.log("EMAIL & OTP=>", otp, email);
 
   try {
     const { error, user } = await validateUser(email, otp);
-    console.log("VERIFIED USER=>", user);
 
     if (error) {
       return badRequest(res, error);
     }
+
+    await createUserWallet(user._id, res);
 
     res.status(200).json({
       verified: user.verified,
@@ -149,14 +153,13 @@ exports.userLogin = async (req, res) => {
     }
     //TO CHECK IF USER'S VERIFICATION IS COMPLETE
     const verifiedUser = checkUser.verified;
-    console.log("VERIFIED USER=>", verifiedUser);
     if (verifiedUser === false) {
       return res.status(400).json({
         error: "User not verified, please verify your account",
       });
     }
     const token = generateToken(checkUser._id, checkUser.email);
-  
+
     res.status(200).json({
       message: "Login Success",
       token,
@@ -172,7 +175,6 @@ exports.userLogin = async (req, res) => {
     });
   }
 };
-
 
 // RESEND VERIFIICATION OTP
 exports.resendVerificationOTP = async (req, res) => {
@@ -220,7 +222,7 @@ exports.forgotPasswordOtp = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({
-      email
+      email,
     });
     if (!user) {
       return res.status(404).json({
@@ -297,7 +299,9 @@ exports.resetPassword = async (req, res) => {
   const { email, newPassword, repeatPassword } = body.data;
 
   if (newPassword !== repeatPassword) {
-    return res.status(400).json({ errors: [{ error: "Passwords do not match" }] });
+    return res
+      .status(400)
+      .json({ errors: [{ error: "Passwords do not match" }] });
   }
   try {
     // Find the user by email
@@ -307,12 +311,16 @@ exports.resetPassword = async (req, res) => {
       return notFound(res, "User not found");
     }
 
-      // Check if the new password is the same as the previous password
-      const isSamePassword = await compare(newPassword, user.password);
+    // Check if the new password is the same as the previous password
+    const isSamePassword = await compare(newPassword, user.password);
 
-      if (isSamePassword) {
-        return res.status(400).json({ errors: [{ error: "New Password cannot be the same as the previous one." }] });
-      }
+    if (isSamePassword) {
+      return res.status(400).json({
+        errors: [
+          { error: "New Password cannot be the same as the previous one." },
+        ],
+      });
+    }
 
     // Encrypt the new password
     const newPasswordHash = await encrypt(newPassword);
@@ -320,8 +328,7 @@ exports.resetPassword = async (req, res) => {
     user.password = newPasswordHash;
     await user.save();
     res.status(200).json({ message: "Password has been successfully reset" });
-    
-  } catch (error) { 
+  } catch (error) {
     console.log("RESET PASSWORD ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
@@ -332,8 +339,8 @@ exports.resendPasswordOTP = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const user = await User.findOne({email});
-   
+    const user = await User.findOne({ email });
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -419,7 +426,7 @@ exports.changePassword = async (req, res) => {
     return res.status(400).json({ errors: body.error.issues });
   }
 
-  const {  currentPassword, newPassword, repeatNewPassword } = body.data;
+  const { currentPassword, newPassword, repeatNewPassword } = body.data;
 
   try {
     //FIND THE USER BY id
@@ -430,7 +437,7 @@ exports.changePassword = async (req, res) => {
       return notFound(res, "User");
     }
 
-   // VERIFY IF CURRENT PASSWORD MATCHES NEW ONE
+    // VERIFY IF CURRENT PASSWORD MATCHES NEW ONE
     const isPasswordMatch = await compare(currentPassword, user.password);
 
     if (!isPasswordMatch) {
@@ -474,8 +481,6 @@ exports.getAllUsers = async (req, res) => {
 
 // UPDATE USER PROFILE
 
-
-
 exports.updateUserInfo = async (req, res) => {
   const MAX_RETRY_ATTEMPTS = 3;
   const { id } = req.user;
@@ -494,17 +499,17 @@ exports.updateUserInfo = async (req, res) => {
       try {
         const fileBuffer = req.file.buffer;
 
-    // CONVERT THE FILE BUFFER TO BASE64 STRING
-    const fileString = fileBuffer.toString('base64');
+        // CONVERT THE FILE BUFFER TO BASE64 STRING
+        const fileString = fileBuffer.toString("base64");
 
-    result = await uploader.upload(`data:image/png;base64,${fileString}`, {
-      folder: 'avatars',
-    });
+        result = await uploader.upload(`data:image/png;base64,${fileString}`, {
+          folder: "avatars",
+        });
 
         // IF THE UPLOAD IS SUCCESSFUL, BREAK OUT OF THE RETRY LOOP
         break;
       } catch (uploadError) {
-        console.error('Error uploading to Cloudinary =>', uploadError);
+        console.error("Error uploading to Cloudinary =>", uploadError);
 
         retryAttempts++;
 
@@ -534,15 +539,15 @@ exports.updateUserInfo = async (req, res) => {
         $set: {
           userName: userName,
           phoneNumber: phoneNumber,
-          'avatar.public_id': result.public_id,
-          'avatar.url': result.secure_url,
+          "avatar.public_id": result.public_id,
+          "avatar.url": result.secure_url,
         },
       },
       { new: true }
     );
 
     res.status(200).json({
-      msg: 'User Profile Updated Successfully',
+      msg: "User Profile Updated Successfully",
       user: {
         userName,
         phoneNumber,
@@ -553,22 +558,22 @@ exports.updateUserInfo = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log('UPDATE USER ERROR =>', error);
+    console.log("UPDATE USER ERROR =>", error);
     res.status(500).json({
       errors: [
         {
-          error: 'Server Error',
+          error: "Server Error",
         },
       ],
     });
   }
 };
 //GET A USER'S DETAILS
-exports.getUserDetail = async(req, res) => {
+exports.getUserDetail = async (req, res) => {
   try {
-    const {id} = req.user
+    const { id } = req.user;
 
-    const userDetails = await User.find({_id:id})
+    const userDetails = await User.find({ _id: id });
     if (!userDetails) {
       return res.status(404).json({
         errors: [
@@ -578,10 +583,11 @@ exports.getUserDetail = async(req, res) => {
         ],
       });
     }
-    return res.status(200).json({msg:"User successfully fetched", userDetails})
-
+    return res
+      .status(200)
+      .json({ msg: "User successfully fetched", userDetails });
   } catch (error) {
-    console.log("ERROR GETING USER DETAILS=>",error )
+    console.log("ERROR GETING USER DETAILS=>", error);
     res.status(500).json({
       errors: [
         {
@@ -590,15 +596,13 @@ exports.getUserDetail = async(req, res) => {
       ],
     });
   }
-}
+};
 
 // USER LOGOUT
 exports.userLogout = async (req, res) => {
-
   // Get the token from the header
-  
 
-  const token = req.header('authorization');
+  const token = req.header("authorization");
 
   if (!token) {
     return res.status(401).json({
@@ -614,13 +618,12 @@ exports.userLogout = async (req, res) => {
   });
 };
 
-
 // DELETE USER FOR TESTING (by email)
 exports.deleteUserByEmail = async (req, res) => {
-  const { email } = req.body; 
+  const { email } = req.body;
 
   try {
-    const user = await User.findOneAndDelete({email});
+    const user = await User.findOneAndDelete({ email });
     console.log("USER=>", user);
 
     if (!user) {
@@ -631,7 +634,7 @@ exports.deleteUserByEmail = async (req, res) => {
           },
         ],
       });
-    }   
+    }
 
     res.status(200).json({
       msg: "User Deleted",

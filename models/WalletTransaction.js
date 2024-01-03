@@ -16,12 +16,12 @@ const walletTransactionSchema = new mongoose.Schema(
       type: String,
       required: [true, "currency is required"],
       default: "NGN",
-      enum: ["NGN", "USD", "EUR", "GBP"],  
+      enum: ["NGN", "USD", "EUR", "GBP"],
     },
     transType: {
       type: String,
       required: true,
-      enum: ["credit", "debit"]
+      enum: ["credit", "debit"],
     },
     status: {
       type: String,
@@ -29,11 +29,11 @@ const walletTransactionSchema = new mongoose.Schema(
       enum: ["successful", "pending", "failed"],
     },
     description: {
-      type: String
+      type: String,
     },
     previousBalance: {
-      type: Number
-    }
+      type: Number,
+    },
   },
   { timestamps: true }
 );

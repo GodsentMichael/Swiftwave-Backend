@@ -1,8 +1,10 @@
-const { isAuthenticated } = require("middlewares/auth");
+const { isAuthenticated } = require("../../middlewares/auth");
 const {
-  verifyUser,forgotPasswordOtp, verifyForgotPasswordOtp, resetPassword
- 
-} = require("controllers/user");
+  verifyUser,
+  forgotPasswordOtp,
+  verifyForgotPasswordOtp,
+  resetPassword,
+} = require("../../controllers/user");
 const express = require("express");
 const { Router } = express;
 
@@ -12,7 +14,6 @@ const router = Router();
 // desc  verify user
 // access public
 router.post("/verify", verifyUser);
-
 
 // route POST api/auth/password/forgot-password
 // desc  generate forgot-password OTP

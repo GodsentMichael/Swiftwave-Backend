@@ -18,4 +18,4 @@ const waitlistSchema = new Schema({
 
 // Create the Waitlist model
 
-module.exports = model('Waitlist', waitlistSchema);
+module.exports = model("Waitlist", waitlistSchema);

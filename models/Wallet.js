@@ -1,36 +1,40 @@
-const mongoose = require('mongoose')
-const {Schema, model} = mongoose
+const mongoose = require("mongoose");
+const { Schema, model } = mongoose;
 
-const WalletSchema = new Schema({
+const WalletSchema = new Schema(
+  {
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     pin: {
-        type: String, // Use string, so it can be hashed and saved to db.
+      type: String, // Use string, so it can be hashed and saved to db.
     },
     isPinSet: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     mainBalance: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
     availableBalance: {
-        type: Number,
-        default: 0
-    }, otp: {
-        type: String,
+      type: Number,
+      default: 0,
+    },
+    otp: {
+      type: String,
     },
     virtualAccountNumber: {
-        type: String,
+      type: String,
     },
-      otpExpireIn: {
-        type: Number,
-      },
-}, {
+    otpExpireIn: {
+      type: Number,
+    },
+  },
+  {
     timestamps: true,
-});
+  }
+);
 
 module.exports = model("Wallet", WalletSchema);

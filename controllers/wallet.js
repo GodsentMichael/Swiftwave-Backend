@@ -1,5 +1,7 @@
-const Wallet = require("models/Wallet");
-const User = require("models/User");
+const axios = require("axios");
+
+const Wallet = require("../models/Wallet");
+const User = require("../models/User");
 const {
   WalletSchema,
   FundWalletSchema,
@@ -7,16 +9,15 @@ const {
   ResetPinSchema,
   VerifyOtpPinSchema,
   SetPinSchema,
-} = require("validations/wallet");
-const axios = require('axios');
-const { encrypt } = require("helpers/auth");
-const { compare } = require("helpers/auth");
-const { generateOTP } = require("helpers/token");
-const { badRequest, notFound } = require("helpers/error");
-const verifyOTP = require("helpers/verifyOtp");
-const sendEmail = require("services/email");
-const { createAccountOtp, resetPasswordOtp } = require("helpers/mails/otp");
-const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
+} = require("../validations/wallet");
+const { encrypt, compare } = require("../helpers/auth");
+const { generateOTP } = require("../helpers/token");
+const { badRequest, notFound } = require("../helpers/error");
+const verifyOTP = require("../helpers/verifyOtp");
+const sendEmail = require("../services/email");
+const { createAccountOtp, resetPasswordOtp } = require("../helpers/mails/otp");
+const { getSecondsBetweenTime, timeDifference } = require("../helpers/date");
+const { createUserWallet } = require("../services/wallet");
 // const WalletTransaction = require("models/WalletTransactionSchema")
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
@@ -48,98 +49,79 @@ const { getSecondsBetweenTime, timeDifference } = require("helpers/date");
 //   }
 // };
 
-
-
 //exports.createWallet = async (req, res) => {
-  //try {
-    //const { id } = req.user;
-    //const user = await User.findById(id);
-    //console.log("USER=>", user);
-    //const wallet = await Wallet.findOne({ user: id });
+//try {
+//const { id } = req.user;
+//const user = await User.findById(id);
+//console.log("USER=>", user);
+//const wallet = await Wallet.findOne({ user: id });
 
-    //if (!user) return res.status(400).json({ error: "User not found" });
-    //if (wallet) return res.status(400).json({ error: "Wallet already exists" });
+//if (!user) return res.status(400).json({ error: "User not found" });
+//if (wallet) return res.status(400).json({ error: "Wallet already exists" });
 
-   
+// Generate virtual account number using Paystack's Dedicated Account API
+//const paystackUrl = 'https://api.paystack.co/dedicated_account';
+//const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
+//const paystackHeaders = {
+//'Authorization': `Bearer ${paystackSecretKey}`,
+//'Content-Type': 'application/json',
+//};
+//const paystackData = {
+//customer: `Swift-${user.userName}`,
+//preferred_bank: 'test-bank',
+//};
 
-    // Generate virtual account number using Paystack's Dedicated Account API
-    //const paystackUrl = 'https://api.paystack.co/dedicated_account';
-    //const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY; 
-    //const paystackHeaders = {
-      //'Authorization': `Bearer ${paystackSecretKey}`,
-      //'Content-Type': 'application/json',
-    //};
-    //const paystackData = {
-      //customer: `Swift-${user.userName}`, 
-      //preferred_bank: 'test-bank', 
-    //};
+//const response = await axios.post(paystackUrl, paystackData, {
+//headers: paystackHeaders,
+//});
 
-    //const response = await axios.post(paystackUrl, paystackData, {
-      //headers: paystackHeaders,
-    //});
+//const { account_number } = response.data.data;
 
-    //const { account_number } = response.data.data;
+// Update the wallet with the generated virtual account number
+//createdWallet.virtualAccountNumber = account_number;
+// Create a wallet in your app
+//const createdWallet = await Wallet.create({
+//user: user.id,
+//virtualAccountNumber:account_number
+//});
+//await createdWallet.save();
 
-    // Update the wallet with the generated virtual account number
-    //createdWallet.virtualAccountNumber = account_number;
-     // Create a wallet in your app
-     //const createdWallet = await Wallet.create({
-      //user: user.id,
-      //virtualAccountNumber:account_number
-    //});
-    //await createdWallet.save();
-
-    //res.status(200).json({ message: "Wallet Created Successfully", createdWallet });
-  //} catch (error) {
-    //console.log("WALLET CREATION=>", error);
-    //res.status(500).json({
-      //errors: [
-        //{
-          //error: "Server Error",
-        //},
-      //],
-    //});
- // }
+//res.status(200).json({ message: "Wallet Created Successfully", createdWallet });
+//} catch (error) {
+//console.log("WALLET CREATION=>", error);
+//res.status(500).json({
+//errors: [
+//{
+//error: "Server Error",
+//},
+//],
+//});
+// }
 //};
 
 //PAYSTACK KEY
 
 // THIS WALLET CONTROLLER SHOULD BE TRIGGERED AS SOON AS THE USER IS CREATED
- exports.createWallet = async (req, res) => {
-   try {
-     const { id } = req.user;
-     const user = await User.findById(id);
-     console.log("USER=>", user);
-     const wallet = await Wallet.findOne({ user: id });
 
-     if(!user) return  res.status(400).json({ errors: [
-      {
-        error: "User not found",
-      },
-    ]})
-     if (wallet) return res.status(400).json({ errors: [
-      {
-        error: "Wallet already exists",
-      },
-    ]})
+exports.createWallet = async (req, res) => {
+  try {
+    const { id } = req.user;
 
-     const createdWallet = await Wallet.create({
-       user: user.id,
-     });
-     res
-       .status(200)
-       .json({ message: "Wallet Created Succesully", createdWallet });
-   } catch (error) {
-     console.log("WALLET CREATION=>",error);
-     res.status(500).json({
-       errors: [
-         {
-           error: "Server Error",
-         },
-       ],
-     });
-   }
- };
+    const createdWallet = await createUserWallet(id, res);
+    res
+      .status(200)
+      .json({ message: "Wallet Created Succesully", createdWallet });
+  } catch (error) {
+    console.log("WALLET CREATION=>", error);
+    res.status(500).json({
+      errors: [
+        {
+          error: "Server Error",
+        },
+      ],
+    });
+  }
+};
 
 //TO CREATE PIN FOR THE WALLET
 exports.createPin = async (req, res) => {
@@ -169,7 +151,7 @@ exports.createPin = async (req, res) => {
         .json({ message: "Pin Created Succesfully", wallet });
     }
   } catch (error) {
-    console.log("PIN CREATION ERROR=>",error);
+    console.log("PIN CREATION ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -196,7 +178,7 @@ exports.changePin = async (req, res) => {
     await wallet.save();
     return res.status(200).json({ message: "Pin Changed Succesfully", wallet });
   } catch (error) {
-    console.log("CHANGE WALLET PIN ERROR=>",error);
+    console.log("CHANGE WALLET PIN ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -242,7 +224,7 @@ exports.resetPinOTP = async (req, res) => {
     await wallet.save();
     return res.status(200).json({ message: "Reset OTP sent", wallet });
   } catch (error) {
-    console.log("CHANGE WALLET OTP ERROR=>",error);
+    console.log("CHANGE WALLET OTP ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -251,7 +233,6 @@ exports.resetPinOTP = async (req, res) => {
       ],
     });
   }
-  
 };
 
 // VERIFY RESET PIN OTP
@@ -276,7 +257,7 @@ exports.verifyResetPinOTP = async (req, res) => {
     await wallet.save();
     return res.status(200).json({ message: "Reset OTP verified", wallet });
   } catch (error) {
-    console.log("VERIFY WALLET PIN ERROR=>",error);
+    console.log("VERIFY WALLET PIN ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -285,7 +266,6 @@ exports.verifyResetPinOTP = async (req, res) => {
       ],
     });
   }
-  
 };
 
 // SET NEW PIN
@@ -309,7 +289,7 @@ exports.setNewPin = async (req, res) => {
     await wallet.save();
     return res.status(200).json({ message: "Pin Changed Succesfully", wallet });
   } catch (error) {
-    console.log("CHANGE WALLET PIN ERROR=>",error);
+    console.log("CHANGE WALLET PIN ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -336,7 +316,7 @@ exports.fundWallet = async (req, res) => {
       .status(200)
       .json({ message: "Wallet Funded Succesfully", wallet });
   } catch (error) {
-    console.log(" WALLET FUNDING ERROR=>",error);
+    console.log(" WALLET FUNDING ERROR=>", error);
     res.status(500).json({
       errors: [
         {
