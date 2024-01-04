@@ -22,9 +22,9 @@ exports.electricityRecharge = async (req, res) => {
     const vtPassApiKey = process.env.VTPASS_API_KEY;
     const vtPassSecretKey = process.env.VTPASS_SECRET_KEY;
     const vtPassPublicKey = process.env.VTPASS_PUBLIC_KEY;
-    console.log("vtPassApiKey =>", vtPassApiKey);
-    console.log("vtPassSecretKey =>", vtPassSecretKey);
-    console.log("vtPassPublicKey =>", vtPassPublicKey);
+    // console.log("vtPassApiKey =>", vtPassApiKey);
+    // console.log("vtPassSecretKey =>", vtPassSecretKey);
+    // console.log("vtPassPublicKey =>", vtPassPublicKey);
     const vtPassApiResponse = await axios.post(
       vtPassApiUrl,
       {
@@ -38,17 +38,16 @@ exports.electricityRecharge = async (req, res) => {
       {
         headers: {
           "Content-Type": "application/json",
-          // "Authorization": `Bearer ${vtPassApiKey}`,
           "api-key": vtPassApiKey,
           "secret-key": vtPassSecretKey,
           "public-key": vtPassPublicKey,
         },
       }
     );
-    console.log("VT Pass API Response=>", vtPassApiResponse.data);
+    // console.log("VT Pass API Response=>", vtPassApiResponse.data);
     const transactionId =
       vtPassApiResponse.data?.content?.transactions?.transactionId;
-    console.log("transactionId=>", transactionId);
+    // console.log("transactionId=>", transactionId);
 
     // Update the order status and transaction details in your database
     if (
@@ -76,7 +75,7 @@ exports.electricityRecharge = async (req, res) => {
         .json({ message: vtPassApiResponse.data.response_description });
     }
   } catch (error) {
-    console.error("Recharge Electricity Bill Error:", error);
+    console.error("Recharge Electricity Bill Error=>", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

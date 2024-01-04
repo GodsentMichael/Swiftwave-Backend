@@ -3,6 +3,7 @@ const userRouter = require("../routes/api/user.routes");
 const authRouter = require("../routes/api/auth.routes");
 const airtimeRouter = require("../routes/api/airtime.routes");
 const electricityRouter = require("../routes/api/electricity.routes");
+const dataRouter = require("../routes/api/data.routes");
 const walletRouter = require("../routes/api/wallet.routes");
 const waitlistRouter = require(".././routes/api/waitlist.routes");
 const reportRouter = require("../routes/api/report-issue.routes");
@@ -21,6 +22,9 @@ module.exports = function routes(app) {
 
   // Electricity_Bills routes
   app.use("/api/", electricityRouter);
+
+  // Data subscription routes
+  app.use("/api/", dataRouter);
 
   // Wallet routes
   app.use("/api/wallet", walletRouter);
