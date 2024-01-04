@@ -7,6 +7,10 @@ const WalletSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    account: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AccountDetail",
+    },
     pin: {
       type: String, // Use string, so it can be hashed and saved to db.
     },
