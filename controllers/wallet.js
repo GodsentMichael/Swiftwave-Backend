@@ -331,7 +331,7 @@ exports.fundWallet = async (req, res) => {
 exports.getUserWallet = async (req, res) => {
   const { id } = req.user;
   try {
-    const wallet = await Wallet.findOne({ user: id });
+    const wallet = await Wallet.findOne({ user: id }).populate("account");
     if (!wallet) return res.status(400).json({ error: "No wallet Found" });
 
     return res.status(200).json({ wallet });
