@@ -1,39 +1,31 @@
 const axios = require("axios");
+const User = require("../models/User");
 const ElectricityBillPayment = require("../models/ElectricityBillPayment");
-const { ElectricityBillPaymentSchema } = require("../validations/electricity");
+const { ElectricityBillPaymentSchema, ElectricityVerificationSchema } = require("../validations/electricity");
+const { generateRequestId } = require("helpers/airtimeRecharge")
 
-// to recharge electricity bills
-exports.electricityRecharge = async (req, res) => {
-  const body = ElectricityBillPaymentSchema.safeParse(req.body);
 
-  if (!body.success) {
-    return res.status(400).json({ errors: body.error.issues });
-  }
-
+// TO VERIFY THE CUSTOMER'S METER NUMBER
+exports.verifyMeterNumber = async (req, res) => {
   try {
-    const electricityOrder = await ElectricityBillPayment.create({
-      ...body.data,
-    });
+    const body = ElectricityVerificationSchema.safeParse(req.body);
 
-    //To make the call to vtpass endpoints and buy the airtime.
-    const vtPassApiUrl = process.env.VTPASS_API_URL;
-    console.log("vtPassApiUrl =>", vtPassApiUrl);
+    if (!body.success) {
+      return res.status(400).json({ errors: body.error.issues });
+    }
 
+    const vtPassApiUrl = process.env.VTPASS_ELECTRICITY_API_URL;
+    
     const vtPassApiKey = process.env.VTPASS_API_KEY;
     const vtPassSecretKey = process.env.VTPASS_SECRET_KEY;
     const vtPassPublicKey = process.env.VTPASS_PUBLIC_KEY;
-    // console.log("vtPassApiKey =>", vtPassApiKey);
-    // console.log("vtPassSecretKey =>", vtPassSecretKey);
-    // console.log("vtPassPublicKey =>", vtPassPublicKey);
+    
     const vtPassApiResponse = await axios.post(
       vtPassApiUrl,
       {
         serviceID: body.data.billingServiceID,
         billersCode: body.data.meterNumber,
-        variation_code: "prepaid",
-        amount: body.data.amount,
-        phone: body.data.phoneNumber,
-        request_id: body.data.meterNumber,
+        type: body.data.type,
       },
       {
         headers: {
@@ -44,12 +36,94 @@ exports.electricityRecharge = async (req, res) => {
         },
       }
     );
-    // console.log("VT Pass API Response=>", vtPassApiResponse.data);
+
+    // console.log("VT Pass API Response=>", vtPassApiResponse.data)
+
+    if (vtPassApiResponse.data.code === '000') {
+      const { Customer_Name, Meter_Number, Customer_District, Address, error } = vtPassApiResponse.data.content;
+    
+      if (error) {
+        return res.status(400).json({
+          errors: [{
+              error: 'Meter verification failed', error,
+          }, ],
+      });
+      } else {
+        return res.status(200).json({
+          message: 'Meter verification successful',
+          customerName: Customer_Name,
+          meterNumber: Meter_Number,
+          customerDistrict: Customer_District,
+          address: Address,
+        });
+      }
+    } else {
+      return res.status(500).json({ message: 'Unexpected response from VTpass API' });
+    }
+  } catch (error) {
+    console.error('Meter Verification Error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+//TO RECHARGE ELECTRICITY BILLS
+exports.electricityRecharge = async (req, res) => {
+  const {id} = req.user
+  const user = await User.find({user:id})
+  if(!user){
+      return res.status(404).json({
+          errors: [{
+              error: "User not found",
+          }, ],
+      });
+  }
+
+  const body = ElectricityBillPaymentSchema.safeParse(req.body);
+
+  if (!body.success) {
+    return res.status(400).json({ errors: body.error.issues });
+  }
+
+  try {
+    const electricityOrder = await ElectricityBillPayment.create({
+      user: id,
+      ...body.data,
+      requestId: generateRequestId(),
+    });
+
+    const requestId = generateRequestId();
+
+    //To make the call to vtpass endpoints and buy the electricity.
+    const vtPassApiUrl = process.env.VTPASS_API_URL;
+    console.log("vtPassApiUrl =>", vtPassApiUrl);
+
+    const vtPassApiKey = process.env.VTPASS_API_KEY;
+    const vtPassSecretKey = process.env.VTPASS_SECRET_KEY;
+    const vtPassPublicKey = process.env.VTPASS_PUBLIC_KEY;
+
+    const vtPassApiResponse = await axios.post(
+      vtPassApiUrl,
+      {
+        serviceID: body.data.billingServiceID,
+        billersCode: body.data.meterNumber,
+        variation_code: "prepaid",
+        amount: body.data.amount,
+        phone: body.data.phoneNumber,
+        request_id: requestId,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": vtPassApiKey,
+          "secret-key": vtPassSecretKey,
+          "public-key": vtPassPublicKey,
+        },
+      }
+    );
+   
     const transactionId =
       vtPassApiResponse.data?.content?.transactions?.transactionId;
-    // console.log("transactionId=>", transactionId);
-
-    // Update the order status and transaction details in your database
+  
     if (
       vtPassApiResponse.data.response_description == "TRANSACTION SUCCESSFUL"
     ) {
