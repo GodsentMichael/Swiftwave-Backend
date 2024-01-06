@@ -2,7 +2,7 @@ const express = require("express");
 const { Router } = express;
 
 const { isAuthenticated } = require("../../middlewares/auth");
-const { electricityRecharge, verifyMeterNumber } = require("../../controllers/electricity");
+const { electricityPrepaidRecharge, verifyMeterNumber, electricityPostpaidRecharge } = require("../../controllers/electricity");
 
 const router = Router();
 
@@ -14,6 +14,10 @@ router.post("/verify-meter" ,verifyMeterNumber);
 // route POST api/buy-electricity
 // desc  for user to buy electricity
 // access private
-router.post("/buy-electricity", isAuthenticated ,electricityRecharge);
+router.post("/buy-prepaid-electricity", isAuthenticated ,electricityPrepaidRecharge);
+// route POST api/buy-electricity
+// desc  for user to buy electricity
+// access private
+router.post("/buy-postpaid-electricity", isAuthenticated ,electricityPostpaidRecharge);
 
 module.exports = router;

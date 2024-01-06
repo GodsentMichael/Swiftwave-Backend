@@ -82,7 +82,7 @@ exports.createUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.log("CREATE USER ERROR", error);
+    console.log("CREATE USER ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -118,7 +118,7 @@ exports.verifyUser = async (req, res) => {
       msg: "User verified",
     });
   } catch (error) {
-    console.log("VERIFY USER ERROR", error);
+    console.log("VERIFY USER ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -253,7 +253,7 @@ exports.forgotPasswordOtp = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("RESET PASSWORD ERROR", error);
+    console.log("RESET PASSWORD ERROR=>", error);
     res.status(500).json({
       errors: [
         {
@@ -274,7 +274,6 @@ exports.verifyForgotPasswordOtp = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    // console.log("USER=>", user);
 
     if (!(await compare(otp, user.otp))) {
       return badRequest(res, "Invalid OTP");
@@ -413,7 +412,7 @@ exports.updatePassword = async (req, res) => {
       .status(200)
       .json({ message: "Password updated successfully", data: true });
   } catch (error) {
-    console.log("UPDATE PASSWORD ERROR", error);
+    console.log("UPDATE PASSWORD ERROR=>", error);
     res.status(500).json({ errors: [{ error: "Server Error" }] });
   }
 };
