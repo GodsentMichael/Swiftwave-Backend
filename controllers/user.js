@@ -1,5 +1,5 @@
 const User = require("../models/User");
-// const { uploader } = require("cloudinary");
+const BlacklistToken = require("../models/Logout");
 const fs = require("fs");
 const { getSecondsBetweenTime, timeDifference } = require("../helpers/date");
 const {
@@ -598,23 +598,62 @@ exports.getUserDetail = async (req, res) => {
 };
 
 // USER LOGOUT
+// exports.userLogout = async (req, res) => {
+//   // Get the token from the header
+
+//   const token = req.header("authorization");
+
+//   if (!token) {
+//     return res.status(401).json({
+//       error: "Unauthorized",
+//     });
+//   }
+
+//   // Add the token to the blacklist
+//   await BlacklistToken.create({ token });
+
+//   res.status(200).json({
+//     message: "Logout Success",
+//   });
+// };
+
+// USER LOGOUT
 exports.userLogout = async (req, res) => {
-  // Get the token from the header
+  try {
+    // Get the token from the header
+    const authHeader = req.header("Authorization");
+    console.log("AUTH HEADER=>", authHeader)
 
-  const token = req.header("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        error: "Unauthorized",
+      });
+    }
 
-  if (!token) {
-    return res.status(401).json({
-      error: "Unauthorized",
+    // Extract the token
+    const token = authHeader.substring(7);
+
+    // Try to add the token to the blacklist
+    try {
+      await BlacklistToken.create({ token });
+    } catch (error) {
+      // Check if the error is a duplicate key error
+      if (error.code === 11000) {
+        console.log("Token is already blacklisted");
+      } else {
+        throw error; // Rethrow any other errors
+      }
+    }
+
+    res.status(200).json({
+      message: "Logout Success",
+    });
+  } catch (error) {
+    console.error("Logout Error=>", error);
+    res.status(500).json({
+      error: "Internal Server Error",
     });
   }
-
-  // Add the token to the blacklist
-  await BlacklistToken.create({ token });
-
-  res.status(200).json({
-    message: "Logout Success",
-  });
 };
 
 // DELETE USER FOR TESTING (by email)

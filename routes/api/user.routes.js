@@ -12,6 +12,7 @@ const {
   updateUserInfo,
   deleteUserByEmail,
   deleteUser,
+  userLogout,
 } = require("../../controllers/user");
 const { isAuthenticated } = require("../../middlewares/auth");
 const { cloudinaryConfig } = require("../../services/cloudinaryConfig");
@@ -81,5 +82,10 @@ router.delete("/delete-user-by-email/", deleteUserByEmail);
 // desc delete user
 // access private
 router.delete("/delete-user/", isAuthenticated, deleteUser);
+
+// route DELETE api/user/logout
+// desc logout user
+// access private
+router.post("/logout/", isAuthenticated, userLogout);
 
 module.exports = router;
