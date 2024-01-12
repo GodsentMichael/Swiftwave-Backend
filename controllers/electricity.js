@@ -120,6 +120,8 @@ exports.electricityPrepaidRecharge = async (req, res) => {
         },
       }
     );
+
+    console.log("VTPASS_API_RESPONSE=>", vtPassApiResponse)
    
     const transactionId =
       vtPassApiResponse.data?.content?.transactions?.transactionId;
@@ -142,7 +144,7 @@ exports.electricityPrepaidRecharge = async (req, res) => {
     if (electricityOrder.status === "delivered") {
       return res
         .status(200)
-        .json({ message: vtPassApiResponse.data.response_description });
+        .json({ message: vtPassApiResponse.data});
     } else {
       return res
         .status(400)
@@ -153,6 +155,8 @@ exports.electricityPrepaidRecharge = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
 //TO RECHARGE ELECTRICITY BILLS - Postpaid
 exports.electricityPostpaidRecharge = async (req, res) => {
   const {id} = req.user
@@ -228,7 +232,7 @@ exports.electricityPostpaidRecharge = async (req, res) => {
     if (electricityOrder.status === "delivered") {
       return res
         .status(200)
-        .json({ message: vtPassApiResponse.data.response_description });
+        .json({ message: vtPassApiResponse.data});
     } else {
       return res
         .status(400)

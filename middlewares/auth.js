@@ -14,26 +14,24 @@ const isAuthenticated = async (req, res, next) => {
 
   try {
     if (!token) {
-      return unAuthenticated(res);
+      return unAuthenticated(res, "You need to login first." );
     }
     // Verify token
     const decoded = jwt.verify(token, process.env.TOKEN_SECRET_KEY);
     req.user = decoded.user;
 
     // Check if the token is blacklisted
-
     const isBlacklisted = await BlacklistToken.exists({token});
-    console.log("BLACKLISTED TOKEN=>", isBlacklisted);
+    // console.log("BLACKLISTED TOKEN=>", isBlacklisted);
     
     if (isBlacklisted) {
       return res.status(401).json({
         error: "You logged-out; Please log in again.",
       });
     }
-
     next();
   } catch (error) {
-    res.status(500).json({error: 'Authentication error'});
+    res.status(500).json( error );
   }
 };
 

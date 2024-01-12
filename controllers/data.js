@@ -6,72 +6,6 @@ const { generateRequestId } = require("helpers/airtimeRecharge")
 
 
 // TO GET DATA SUBSCRIPTION VARIATION CODES
-// exports.getDataVariationCodes = async(req, res) => {
-//     try{
-
-//         const selectedNetwork = req.body
-//         console.log("SELECTED NETWORK=>", selectedNetwork)
-
-//         if(selectedNetwork = MTN){
-
-//         const vtPassApiUrl = process.env.VTPASS_VARIATION_CODES_API_URL
-//         // const vtPassApiUrl = `${process.env.VTPASS_VARIATION_CODES_API_URL}?serviceID=${selectedNetwork}`;
-//         console.log("vtPassApiUrl =>", vtPassApiUrl)
-
-//         const vtPassApiKey= process.env.VTPASS_API_KEY
-//         const vtPassSecretKey = process.env.VTPASS_SECRET_KEY
-//         const vtPassPublicKey = process.env.VTPASS_PUBLIC_KEY
-
-//         const vtPassApiResponse = await axios.get(
-//             vtPassApiUrl,
-            
-//             {
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                     "api-key": vtPassApiKey,
-//                     "secret-key": vtPassSecretKey,
-//                     "public-key": vtPassPublicKey,
-//             }
-//         }
-        
-//         )} else if(selectedNetwork == GLO){
-//             const vtPassApiUrl = process.env.VTPASS_VARIATION_CODES_API_URL
-//             // const vtPassApiUrl = `${process.env.VTPASS_VARIATION_CODES_API_URL}?serviceID=${selectedNetwork}`;
-//             console.log("vtPassApiUrl =>", vtPassApiUrl)
-    
-//             const vtPassApiKey= process.env.VTPASS_API_KEY
-//             const vtPassSecretKey = process.env.VTPASS_SECRET_KEY
-//             const vtPassPublicKey = process.env.VTPASS_PUBLIC_KEY
-    
-//             const vtPassApiResponse = await axios.get(
-//                 vtPassApiUrl,
-                
-//                 {
-//                     headers: {
-//                         'Content-Type': 'application/json',
-//                         "api-key": vtPassApiKey,
-//                         "secret-key": vtPassSecretKey,
-//                         "public-key": vtPassPublicKey,
-//                 }
-//             })
-//         }
-//         if(vtPassApiResponse.data.response_description == 'TRANSACTION SUCCESSFUL'){
-//             return res.status(200).json({message: vtPassApiResponse.data.content.variations})
-//         }else{
-//             return res.status(400).json({message: vtPassApiResponse.data.response_description})
-//         }
-//     }catch(error){
-//         console.error('DATA VARIATION CODES ERROR=>', error);
-//         res.status(500).json({
-//           errors: [
-//             {
-//               error: "Server Error",
-//             },
-//           ],
-//         });
-//     }
-// }
-
 exports.getDataVariationCodes = async (req, res) => {
     try {
       const { selectedNetwork } = req.body;
@@ -143,7 +77,6 @@ exports.getDataVariationCodes = async (req, res) => {
   };
   
   
-
 // TO BUY AIRTIME BY USING VTPASS API
 exports.dataSubscription = async(req, res) => {
     const {id} = req.user
