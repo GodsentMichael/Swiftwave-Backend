@@ -20,7 +20,7 @@ const { generateOTP } = require("../helpers/token");
 const { badRequest, notFound } = require("../helpers/error");
 const verifyOTP = require("../helpers/verifyOtp");
 const sendEmail = require("../services/email");
-const { createAccountOtp, resetPasswordOtp } = require("../helpers/mails/otp");
+const { createAccountOtp, resetPasswordOtp, welcomeEmail } = require("../helpers/mails/otp");
 const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig");
 const { createUserWallet } = require("../services/wallet");
 
@@ -60,13 +60,28 @@ exports.createUser = async (req, res) => {
 
     await user.save();
 
-    const data = {
+    // Send OTP email on signup
+    const otpData = {
       to: email,
       text: "Swiftwave OTP Verification",
       subject: "Kindly Verify Your Account",
       html: createAccountOtp(otpValue),
     };
-    await sendEmail(data);
+
+    // Send OTP email first
+    await sendEmail(otpData);
+
+    // After 30 seconds, send the welcome email
+    setTimeout(async () => {
+      const welcomeEmailData = {
+        to: email,
+        text: "Welcome To Swiftvista",
+        subject: "We're pleased to have you onboard.",
+        html: welcomeEmail(userName),
+      };
+
+      await sendEmail(welcomeEmailData);
+    }, 30000); // 30 seconds delay
 
     const refreshToken = generateRefreshToken(user._id);
 
@@ -92,6 +107,7 @@ exports.createUser = async (req, res) => {
     });
   }
 };
+
 
 // VERIFY NEWLY CREATED USER
 exports.verifyUser = async (req, res) => {

@@ -32,6 +32,36 @@ const createAccountOtp = (otp) => {
       </body>`;
 };
 
+const welcomeEmail = (userName) => {
+    return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;"><table style="width: 100%; max-width: 500px; margin: 0 auto; background-color: #FFFFFF; padding: 20px;">
+    <tr>
+    <td style="text-align: left;">
+    <p style="font-size: 12px; font-weight: bold; margin: 5px 0;"> SWIFT.</p>
+    </td>
+    </tr>
+    <tr>
+    <td style="text-align: left; margin: 20px 0;">
+    <p style="font-size: 24px; font-weight: bold;">Welcome to Swiftvista, ${userName}!</p>
+    <p style="color: #475467; font-size: 16px;">Thank you for choosing Swiftvista, the app that simplifies and streamlines utility bill payments and airtime/data purchases.</p>
+    <p style="color: #475467; font-size: 16px;">Swiftvista is designed to provide a seamless and efficient platform for managing your essential services.</p>
+    <p style="color: #475467; font-size: 16px;">With Swiftvista, you can easily pay your utility bills and purchase airtime/data at your convenience, all in one place.</p>
+    <p style="color: #475467; font-size: 16px;">We are committed to enhancing your overall user experience and making the management of essential services hassle-free.</p>
+    <p style="color: #475467; font-size: 16px;">If you have any questions or need assistance, our support team is ready to help.</p>
+    </td>
+    </tr>
+    <tr>
+    <td style="background-color: #F2F4F7; padding: 20px; text-align: left;">
+    <p style="font-size: 12px; font-weight: bold; margin: 5px 0;">© 2024 Swiftvista. All rights reserved.</p>
+    <p style="font-size: 12px; margin: 5px 0;">Follow us</p>
+    <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://img.freepik.com/premium-vector/purple-gradiend-social-media-logo_197792-1883.jpg" alt="Instagram">
+    <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/640px-LinkedIn_logo_initials.png" alt="LinkedIn">
+    <img style="width: 20px; margin: 0 2px; display: inline-block;" src="https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" alt="Twitter">
+    </td>
+    </tr>
+    
+    </table> </body>`; }
+  
+
 /* eslint-disable max-len */
 const resetPasswordOtp = (otp) => {
   return `<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: Arial, sans-serif;">
@@ -141,6 +171,7 @@ const reportReceived = (username) => {
 
 module.exports = {
   createAccountOtp,
+  welcomeEmail,
   resetPasswordOtp,
   reportReceived,
   reportSent,
