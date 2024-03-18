@@ -3,11 +3,6 @@ const { Schema, model } = mongoose;
 
 const UserSchema = new Schema(
   {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     userName: {
       type: String,
       required: true,
@@ -16,26 +11,41 @@ const UserSchema = new Schema(
     fullName: {
       type: String,
     },
+    country: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other", "Prefer not to say"],
+    },
     phoneNumber: {
       type: String,
       required: true,
       unique: true,
       trim: true,
     },
+    uniqueCode: {
+      type: String,
+    },
     password: {
       type: String,
       required: true,
     },
-    howDidYouHear: {
-      type: String,
-      enum: [
-        "Television",
-        "Twitter",
-        "Instagram",
-        "Youtube",
-        "LinkedIn",
-        "Friends",
-      ],
+    placeOfBirth: {
+      state: {
+        type: String,
+        required: true,
+      },
+      localGovtArea: {
+        type: String,
+        required: true,
+      },
     },
     avatar: {
       public_id: {
@@ -64,5 +74,19 @@ const UserSchema = new Schema(
     timestamps: true,
   }
 );
+
+// Generate unique code for each user
+UserSchema.pre("save", function (next) {
+  const initials = this.fullName
+    .split(" ")
+    .map((name) => name.charAt(0))
+    .join("")
+    .toUpperCase();
+    console.log("INITIALS=>", initials);
+  const uniqueCode = `${initials}${Date.now()}`;
+  this.uniqueCode = uniqueCode;
+  console.log("UNIQUE CODE=>", uniqueCode);
+  next();
+});
 
 module.exports = model("User", UserSchema);

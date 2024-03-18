@@ -7,6 +7,11 @@ const UserSchema = z
         required_error: "username is required",
       })
       .min(2, "username is too short"),
+    fullName: z
+      .string({
+        required_error: "fullname is required",
+      })
+      .min(2, "fullname is too short"),
     howDidYouHear: z
       .enum([
         "Television",
@@ -22,14 +27,21 @@ const UserSchema = z
         required_error: "email is required",
       })
       .email("Invalid email"),
+    gender: z.enum(["Male", "Female"]),
+    placeOfBirth: z.object({
+      state: z.string({ required_error: "State of birth is required" }),
+      localGovtArea: z.string({ required_error: "Local government area of birth is required" }),
+    }).optional(),
     phoneNumber: z
       .string({
         required_error: "phone number is required",
       })
       .min(10),
+    country: z.string({ required_error: "Country is required" }),
     password: z.string().min(8, "Password is too short"),
   })
   .strict();
+
 
 const VerifyUserSchema = z
   .object({
@@ -47,12 +59,15 @@ const VerifyUserSchema = z
   })
   .strict();
 
-const LoginUserSchema = z
-  .object({
-    email: z.string().email("Invalid email"),
-    password: z.string().min(4).max(30),
-  })
-  .strict();
+const LoginUserSchema = z.object({
+    email: z.string({
+      required_error: "Email is required",
+    }).email("Invalid email"),
+    password: z.string({
+      required_error: "Password is required",
+    }),
+})
+.strict();
 
 const VerifyPasswordOtpSchema = z
   .object({

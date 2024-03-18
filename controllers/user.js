@@ -102,6 +102,7 @@ exports.verifyUser = async (req, res) => {
       errors: body.error.issues,
     });
   }
+  
   const { email, otp } = body.data;
 
   try {
@@ -111,7 +112,10 @@ exports.verifyUser = async (req, res) => {
       return badRequest(res, error);
     }
 
-    await createUserWallet(user._id, res);
+    // Your logic for verifying the user
+    // For example, update the 'verified' field in the database
+    user.verified = true;
+    await user.save();
 
     res.status(200).json({
       verified: user.verified,
@@ -128,6 +132,7 @@ exports.verifyUser = async (req, res) => {
     });
   }
 };
+
 
 // USER LOGIN
 exports.userLogin = async (req, res) => {
@@ -362,7 +367,7 @@ exports.resendPasswordOTP = async (req, res) => {
     // Send the new verification code to the user
     const data = {
       to: email,
-      text: "Swiftwave resend Password OTP",
+      text: "Swiftwave reset Password OTP",
       subject: "Kindly Verify Your Password OTP",
       html: resetPasswordOtp(newOTP),
     };
@@ -567,6 +572,8 @@ exports.updateUserInfo = async (req, res) => {
     });
   }
 };
+
+
 //GET A USER'S DETAILS
 exports.getUserDetail = async (req, res) => {
   try {
