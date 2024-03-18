@@ -82,11 +82,12 @@ UserSchema.pre("save", function (next) {
     .map((name) => name.charAt(0))
     .join("")
     .toUpperCase();
-    console.log("INITIALS=>", initials);
-  const uniqueCode = `${initials}${Date.now()}`;
+  const randomNumber = Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit number
+  const uniqueCode = `SWIFT${randomNumber}`;
   this.uniqueCode = uniqueCode;
   console.log("UNIQUE CODE=>", uniqueCode);
   next();
 });
+
 
 module.exports = model("User", UserSchema);
