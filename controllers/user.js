@@ -36,6 +36,10 @@ exports.createUser = async (req, res) => {
 
   const { userName, email, phoneNumber, password, howDidYouHear } = body.data;
   try {
+    const checkUserName =  await User.findOne({userName})
+    if(checkUserName){
+      return badRequest(res, "Username already taken")
+    }
     const checkPhone = await User.findOne({ phoneNumber });
     if (checkPhone) {
       return badRequest(res, "Phone Number already taken");
