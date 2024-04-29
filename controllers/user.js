@@ -55,7 +55,7 @@ exports.createUser = async (req, res) => {
     const user = new User({
       ...body.data,
       otp,
-      otpExpireIn: new Date().getTime() + 30 * 60 * 1000, // To expire in 30 minutes.
+      otpExpireIn: new Date().getTime() + 30 * 60 * 1000,
     });
 
     await user.save();

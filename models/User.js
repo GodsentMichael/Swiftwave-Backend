@@ -37,16 +37,16 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
-    placeOfBirth: {
-      state: {
-        type: String,
-        required: true,
-      },
-      localGovtArea: {
-        type: String,
-        required: true,
-      },
-    },
+    // placeOfBirth: {
+    //   state: {
+    //     type: String,
+    //     required: true,
+    //   },
+    //   localGovtArea: {
+    //     type: String,
+    //     required: true,
+    //   },
+    // },
     avatar: {
       public_id: {
         type: String,
