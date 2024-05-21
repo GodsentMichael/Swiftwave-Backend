@@ -39,7 +39,10 @@ const UserSchema = z
       .min(10),
     country: z.string({ required_error: "Country is required" }),
     password: z.string().min(8, "Password is too short"),
+    currency: z.string(),
+    BVN:z.string({required_error: "BVN is required"}).max(11, "false BVN required length")
   })
+
   .strict();
 
 

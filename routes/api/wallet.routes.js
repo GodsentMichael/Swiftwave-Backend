@@ -19,7 +19,6 @@ const router = Router();
 // route POST api/wallet/create
 // desc  create wallet
 // access private
-router.post("/create", isAuthenticated, createWallet);
 
 // route POST api/wallet/create-pin
 // desc  create pin

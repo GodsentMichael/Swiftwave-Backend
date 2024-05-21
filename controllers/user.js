@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const BlacklistToken = require("../models/Logout");
 const fs = require("fs");
+const {v4:uuidv4} = require('uuid');
+const axios  = require('axios')
 const { getSecondsBetweenTime, timeDifference } = require("../helpers/date");
 const {
   UserSchema,
@@ -23,8 +25,170 @@ const sendEmail = require("../services/email");
 const { createAccountOtp, resetPasswordOtp, welcomeEmail } = require("../helpers/mails/otp");
 const { cloudinaryConfig, uploader } = require("../services/cloudinaryConfig");
 const { createUserWallet } = require("../services/wallet");
+const Wallet = require("../models/Wallet");
 
-// CREATE/REGISTER  USER
+// // CREATE/REGISTER  USER
+// exports.createUser = async (req, res) => {
+//   const body = UserSchema.safeParse(req.body);
+
+//   if (!body.success) {
+//     return res.status(400).json({
+//       errors: body.error.issues,
+//     });
+//   }
+
+//   const { userName, email, phoneNumber, password, howDidYouHear } = body.data;
+//   try {
+//     const checkUserName =  await User.findOne({userName})
+//     if(checkUserName){
+//       return badRequest(res, "Username already taken")
+//     }
+//     const checkPhone = await User.findOne({ phoneNumber });
+//     if (checkPhone) {
+//       return badRequest(res, "Phone Number already taken");
+//     }
+
+//     const checkEmail = await User.findOne({ email });
+//     if (checkEmail) {
+//       return badRequest(res, "Email is already taken");
+//     }
+
+//     body.data.password = await encrypt(password);
+
+//     const otpValue = generateOTP();
+
+//     const otp = await encrypt(otpValue);
+//     const institutionReference = uuidv4()
+
+//     const response = await axios.post(
+//   'https://api.watupay.com/v1/wallet/create',
+//   {
+//     name: body.data.fullName,
+//     currency: body.data.currency,
+//     email: body.data.email,
+//     phoneNumber: body.data.phoneNumber
+//   },
+//   {
+//     headers: {
+//       'Authorization': `Bearer ${process.env.WATU_ACCESS_TOKEN}`,
+//       'Accept': 'application/json, text/plain, */*',
+//       'User-Agent': 'axios/1.5.0',
+//       'Accept-Encoding': 'gzip, compress, deflate, br'
+//     }
+//   }
+// );
+
+//     console.log(response.data)
+//     const watupayWallet = response.data
+
+//     const existingWallet = await Wallet.findById(watupayWallet.data.id);
+
+
+   
+// const watupayWalletId = watupayWallet.data.id
+
+
+// const watuVirtualAccount = await axios.post(
+//   'https://api.watupay.com/v1/virtual-account/create',
+//   {
+//     account_name: body.data.fullName,
+//     business_wallet_id: watupayWalletId,
+//     bank: process.env.WATU_BANK_ID,
+//     customer_phone: body.data.phoneNumber,
+//     customer_email:body.data.email,
+//     //BVN
+//     customer_id: body.data.BVN,
+//     institution_reference:institutionReference
+    
+//   },
+//   {
+//     headers: {
+//       'Authorization': `Bearer ${process.env.WATU_ACCESS_TOKEN}`,
+//       'Accept': 'application/json, text/plain, */*',
+//       'User-Agent': 'axios/1.5.0',
+//       'Accept-Encoding': 'gzip, compress, deflate, br'
+//     }
+//   }
+// );
+// const watuAccountNumber = watuVirtualAccount.data.data.account_id
+
+// if(existingWallet){
+//   existingWallet.id = watupayWalletId
+//   existingWallet.virtualAccountNumber = watuAccountNumber
+//   await existingWallet.save()
+// }
+
+//     const user = new User({
+//       ...body.data,
+//       otp,
+//       otpExpireIn: new Date().getTime() + 30 * 60 * 1000,
+//     });
+
+//     await user.save();
+
+//     const wallet = new Wallet({
+//      _id:watupayWalletId,
+//       user:user._id,
+//       virtualAccountNumber:watuAccountNumber
+//       });
+
+//     //create and save wallet
+//     await wallet.save()
+//     // Send OTP email on signup
+//     const otpData = {
+//       to: email,
+//       text: "Swiftwave OTP Verification",
+//       subject: "Kindly Verify Your Account",
+//       html: createAccountOtp(otpValue),
+//     };
+
+//     // Send OTP email first
+//     await sendEmail(otpData);
+
+//     // After 30 seconds, send the welcome email
+//     setTimeout(async () => {
+//       const welcomeEmailData = {
+//         to: email,
+//         text: "Welcome To Swiftvista",
+//         subject: "We're pleased to have you onboard.",
+//         html: welcomeEmail(userName),
+//       };
+
+//       await sendEmail(welcomeEmailData);
+//     }, 30000); // 30 seconds delay
+
+//     const refreshToken = generateRefreshToken(user._id);
+
+//     res.cookie("jwt", refreshToken, {
+//       httpOnly: true,
+//       sameSite: "None",
+//       secure: process.env.NODE_ENV === "development" ? false : true,
+//       maxAge: 240 * 60 * 60 * 1000,
+//     });
+
+//     res.status(201).json({
+//       msg: "account created",
+//       user,
+//       wallet,
+//       watupayWallet,
+//       existingWallet
+     
+//     });
+//   } catch (error) {
+//     console.log("CREATE USER ERROR=>", error);
+//     res.status(500).json({
+//       errors: [
+//         {
+//           error: "Server Error",
+//         },
+//       ],
+//     });
+//   }
+// };
+
+// 
+
+// CREATE/REGISTER USER
 exports.createUser = async (req, res) => {
   const body = UserSchema.safeParse(req.body);
 
@@ -34,12 +198,15 @@ exports.createUser = async (req, res) => {
     });
   }
 
-  const { userName, email, phoneNumber, password, howDidYouHear } = body.data;
+  const { userName, email, phoneNumber, password, fullName, currency, BVN } = body.data;
+
   try {
-    const checkUserName =  await User.findOne({userName})
-    if(checkUserName){
-      return badRequest(res, "Username already taken")
+    // Check for existing user details
+    const checkUserName = await User.findOne({ userName });
+    if (checkUserName) {
+      return badRequest(res, "Username already taken");
     }
+
     const checkPhone = await User.findOne({ phoneNumber });
     if (checkPhone) {
       return badRequest(res, "Phone Number already taken");
@@ -50,20 +217,87 @@ exports.createUser = async (req, res) => {
       return badRequest(res, "Email is already taken");
     }
 
+    // Encrypt password and generate OTP
     body.data.password = await encrypt(password);
-
     const otpValue = generateOTP();
-
     const otp = await encrypt(otpValue);
 
+    // Create and save the user first
     const user = new User({
       ...body.data,
       otp,
       otpExpireIn: new Date().getTime() + 30 * 60 * 1000,
     });
+    
 
+    // Call the Watupay API to create the wallet
+    const response = await axios.post(
+      'https://api.watupay.com/v1/wallet/create',
+      {
+        name: fullName,
+        currency: currency,
+        email: email,
+        phoneNumber: phoneNumber
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.WATU_ACCESS_TOKEN}`,
+          'Accept': 'application/json, text/plain, */*',
+          'User-Agent': 'axios/1.5.0',
+          'Accept-Encoding': 'gzip, compress, deflate, br'
+        }
+      }
+    );
+
+    const watupayWallet = response.data;
+    console.log(watupayWallet);
+    const watupayWalletId = watupayWallet.data.id;
+console.log(watupayWalletId)
+    // Check if the wallet with the given ID already exists
+    let wallet = await Wallet.findById(watupayWalletId);
+ 
+
+    // If the wallet already exists, only create the virtual account and update the wallet
+    const virtualAccountResponse = await axios.post(
+      'https://api.korapay.com/merchant/api/v1/virtual-bank-account',
+      {
+        account_name: fullName,
+        account_reference:uuidv4(),
+        permanent: true,
+        bank_code :'000',
+        customer:{
+        name:fullName
+        },
+        kyc:{
+          bvn:body.data.BVN
+        },
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.KORA_ACCESS_TOKEN}`,
+          'Accept': 'application/json, text/plain, */*',
+          'User-Agent': 'axios/1.5.0',
+          'Accept-Encoding': 'gzip, compress, deflate, br'
+        }
+      }
+    );
+
+    const koraVirtualAccount = virtualAccountResponse.data;
+    const koraAccountNumber = koraVirtualAccount.data.account_number;
+
+    // Update the wallet with virtual account details
+  
+    if (!wallet) {
+      wallet = new Wallet({
+        _id: watupayWalletId,
+        user: user._id,
+        accountReference:koraVirtualAccount.data.account_reference,
+        virtualAccountNumber:koraAccountNumber,
+        account_id:koraVirtualAccount.data.unique_id
+      });
+    }
     await user.save();
-
+    await wallet.save();
     // Send OTP email on signup
     const otpData = {
       to: email,
@@ -71,8 +305,6 @@ exports.createUser = async (req, res) => {
       subject: "Kindly Verify Your Account",
       html: createAccountOtp(otpValue),
     };
-
-    // Send OTP email first
     await sendEmail(otpData);
 
     // After 30 seconds, send the welcome email
@@ -83,22 +315,21 @@ exports.createUser = async (req, res) => {
         subject: "We're pleased to have you onboard.",
         html: welcomeEmail(userName),
       };
-
       await sendEmail(welcomeEmailData);
-    }, 30000); // 30 seconds delay
+    }, 30000);
 
     const refreshToken = generateRefreshToken(user._id);
-
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       sameSite: "None",
-      secure: process.env.NODE_ENV === "development" ? false : true,
+      secure: process.env.NODE_ENV !== "development",
       maxAge: 240 * 60 * 60 * 1000,
     });
 
     res.status(201).json({
-      msg: "account created",
+      msg: "Account created successfully",
       user,
+      wallet
     });
   } catch (error) {
     console.log("CREATE USER ERROR=>", error);
@@ -111,7 +342,6 @@ exports.createUser = async (req, res) => {
     });
   }
 };
-
 
 // VERIFY NEWLY CREATED USER
 exports.verifyUser = async (req, res) => {
@@ -747,3 +977,29 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
+
+
+
+// exports.fetchBanks = async (req, res) => {
+//   try {
+//     const response = await axios.get('https://api.watupay.com/v1/virtual-account/supported-banks/NG', {
+//       headers: {
+//         'Authorization': `Bearer ${process.env.WATU_ACCESS_TOKEN}`,
+//         'Accept': 'application/json, text/plain, */*',
+//         'User-Agent': 'axios/1.5.0',
+//         'Accept-Encoding': 'gzip, compress, deflate, br'
+//       }
+//     });
+// console.log(process.env.WATU_ACCESS_TOKEN)
+
+// console.log(response.data)
+//     return res.status(200).json(response.data);
+   
+//   } catch (error) {
+//     console.error('Error fetching supported banks:', error);
+
+
+//     throw new Error('Failed to fetch supported banks');
+//   }
+// };
+

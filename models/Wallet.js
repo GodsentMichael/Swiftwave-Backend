@@ -3,6 +3,9 @@ const { Schema, model } = mongoose;
 
 const WalletSchema = new Schema(
   {
+    _id: {
+      type: String,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -32,13 +35,20 @@ const WalletSchema = new Schema(
     virtualAccountNumber: {
       type: String,
     },
+    account_id:{
+      type:String,
+    },
     otpExpireIn: {
       type: Number,
+    },
+    accountReference: { // Add institutionReference field
+      type: String
     },
   },
   {
     timestamps: true,
   }
 );
-
+// Disable automatic generation of _id field by Mongoose
+WalletSchema.set('id', false);
 module.exports = model("Wallet", WalletSchema);

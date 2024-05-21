@@ -9,6 +9,7 @@ const cors = require("cors");
 const db = require("../configs/dbConfig");
 const { AppError } = require("../helpers/error");
 const { expressPinoLogger, logger } = require("../utils/logger.util");
+const { fetchBanks } = require("../controllers/user");
 
 // App Init
 const app = express();
@@ -44,4 +45,7 @@ app.use((error, req, res, next) => {
   });
 });
 
+
+
 module.exports = app;
+
